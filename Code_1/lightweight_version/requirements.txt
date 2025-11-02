@@ -1,0 +1,20 @@
+# PyTorch和深度学习框架
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# 数据处理
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# 可视化
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 训练监控
+tensorboard>=2.13.0
+tqdm>=4.65.0
+
+# 其他工具
+scipy>=1.10.0
