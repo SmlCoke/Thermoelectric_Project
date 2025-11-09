@@ -17,7 +17,6 @@ import sys;
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
-
 def calculate_metrics(predictions, targets):
     """
     计算评估指标
@@ -178,7 +177,7 @@ def visualize_predictions(inputs, predictions, targets, channel_names, config, n
             ax.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        save_path = f'results/prediction_sample_{idx + 1}.svg'
+        save_path = f'results/prediction_sample_{idx + 1}.png'
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
         plt.close()
         
@@ -207,7 +206,7 @@ def visualize_predictions(inputs, predictions, targets, channel_names, config, n
         ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    save_path = 'results/error_distribution.svg'
+    save_path = 'results/error_distribution.png'
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.close()
     
@@ -238,7 +237,7 @@ def visualize_predictions(inputs, predictions, targets, channel_names, config, n
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    save_path = 'results/cloud_event_prediction.svg'
+    save_path = 'results/cloud_event_prediction.png'
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.close()
     

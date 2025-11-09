@@ -1,0 +1,444 @@
+
+Epoch 14/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 91.30it/s, loss=0.0591] 
+训练损失: 0.058606
+验证损失: 0.072772
+学习率: 0.000500
+✓ 保存最佳模型 (验证损失: 0.072772)
+
+Epoch 15/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 90.11it/s, loss=0.0568] 
+训练损失: 0.058726
+验证损失: 0.098866
+学习率: 0.000500
+验证损失未改善 (1/10)
+
+Epoch 16/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 89.87it/s, loss=0.0670] 
+训练损失: 0.057638
+验证损失: 0.090807
+学习率: 0.000500
+验证损失未改善 (2/10)
+
+Epoch 17/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 91.74it/s, loss=0.0656] 
+训练损失: 0.058105
+验证损失: 0.130613
+学习率: 0.000500
+验证损失未改善 (3/10)
+
+Epoch 18/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 90.42it/s, loss=0.0413]
+训练损失: 0.057531
+验证损失: 0.086515
+学习率: 0.000500
+验证损失未改善 (4/10)
+
+Epoch 19/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 90.07it/s, loss=0.0521]
+训练损失: 0.057689
+验证损失: 0.083111
+学习率: 0.000500
+验证损失未改善 (5/10)
+
+Epoch 20/50
+------------------------------------------------------------
+训练中: 100%|████████████████████████| 2394/2394 [00:26<00:00, 89.83it/s, loss=0.0490]
+训练损失: 0.057596
+验证损失: 0.077580
+学习率: 0.000250
+验证损失未改善 (6/10)
+
+Epoch 21/50
+------------------------------------------------------------
+训练中: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 2394/2394 [00:26<00:00, 90.43it/s, loss=0.0456] 
+训练损失: 0.056048
+验证损失: 0.106080
+学习率: 0.000250
+验证损失未改善 (7/10)
+
+Epoch 22/50
+------------------------------------------------------------
+训练中: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 2394/2394 [00:26<00:00, 91.01it/s, loss=0.0616] 
+训练损失: 0.055920
+验证损失: 0.156681
+学习率: 0.000250
+验证损失未改善 (8/10)
+
+Epoch 23/50
+------------------------------------------------------------
+训练中: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 2394/2394 [00:26<00:00, 90.78it/s, loss=0.0736] 
+训练损失: 0.055870
+验证损失: 0.159504
+学习率: 0.000250
+验证损失未改善 (9/10)
+
+Epoch 24/50
+------------------------------------------------------------
+训练中: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 2394/2394 [00:26<00:00, 90.88it/s, loss=0.0838] 
+训练损失: 0.055816
+验证损失: 0.096507
+学习率: 0.000250
+验证损失未改善 (10/10)
+
+早停触发！连续 10 个epoch验证损失未改善
+
+============================================================
+训练完成！
+============================================================
+总训练时间: 13.69 分钟
+最佳验证损失: 0.072772
+模型已保存到: checkpoints/best_model.pth
+
+============================================================
+在测试集上评估...
+============================================================
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\train.py:205: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(config.MODEL_SAVE_PATH)
+测试损失 (MSE): 0.065102
+测试损失 (RMSE): 0.255152
+
+接下来可以运行:
+  python test.py  # 查看预测结果可视化
+  tensorboard --logdir=logs/  # 查看训练曲线
+
+(ai) D:\Courses\Thermoelectric_Project\Code_1\lightweight_version>python test.py
+============================================================
+加载模型和数据...
+============================================================
+正在加载数据：data/simulated_data.npz
+数据形状: (60480, 8)
+时间步数: 60480, 通道数: 8
+数据归一化完成
+
+数据集划分:
+  训练集: 44063 个时间步
+  验证集: 13967 个时间步
+  测试集: 13968 个时间步
+
+样本数量:
+  训练样本: 38304
+  验证样本: 8208
+  测试样本: 8209
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:62: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(config.MODEL_SAVE_PATH, map_location=config.DEVICE)
+✓ 模型加载成功 (训练epoch: 13)
+✓ 验证损失: 0.072772
+
+正在进行预测...
+✓ 预测完成
+  测试样本数: 8209
+
+============================================================
+整体性能指标
+============================================================
+MAE: 0.163662
+MSE: 0.065141
+RMSE: 0.255227
+MAPE: 81.206039
+
+各通道MAE:
+  VSW黑: 0.142868
+  VSW红: 0.138116
+  VSW蓝: 0.159902
+  VSW绿: 0.148731
+  VLW黑: 0.162441
+  VLW红: 0.187579
+  VLW蓝: 0.186272
+  VLW绿: 0.183388
+
+============================================================
+生成可视化图...
+============================================================
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 26102 (\N{CJK UNIFIED IDEOGRAPH-65F6}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 38388 (\N{CJK UNIFIED IDEOGRAPH-95F4}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 23567 (\N{CJK UNIFIED IDEOGRAPH-5C0F}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 24402 (\N{CJK UNIFIED IDEOGRAPH-5F52}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 19968 (\N{CJK UNIFIED IDEOGRAPH-4E00}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 21270 (\N{CJK UNIFIED IDEOGRAPH-5316}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 30005 (\N{CJK UNIFIED IDEOGRAPH-7535}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 21387 (\N{CJK UNIFIED IDEOGRAPH-538B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 21382 (\N{CJK UNIFIED IDEOGRAPH-5386}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 21490 (\N{CJK UNIFIED IDEOGRAPH-53F2}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 25968 (\N{CJK UNIFIED IDEOGRAPH-6570}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 25454 (\N{CJK UNIFIED IDEOGRAPH-636E}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 30495 (\N{CJK UNIFIED IDEOGRAPH-771F}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 23454 (\N{CJK UNIFIED IDEOGRAPH-5B9E}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 20540 (\N{CJK UNIFIED IDEOGRAPH-503C}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 32418 (\N{CJK UNIFIED IDEOGRAPH-7EA2}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 34013 (\N{CJK UNIFIED IDEOGRAPH-84DD}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 32511 (\N{CJK UNIFIED IDEOGRAPH-7EFF}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 35797 (\N{CJK UNIFIED IDEOGRAPH-8BD5}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 26679 (\N{CJK UNIFIED IDEOGRAPH-6837}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 26412 (\N{CJK UNIFIED IDEOGRAPH-672C}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 32467 (\N{CJK UNIFIED IDEOGRAPH-7ED3}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:175: UserWarning: Glyph 26524 (\N{CJK UNIFIED IDEOGRAPH-679C}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 24402 (\N{CJK UNIFIED IDEOGRAPH-5F52}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 19968 (\N{CJK UNIFIED IDEOGRAPH-4E00}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 21270 (\N{CJK UNIFIED IDEOGRAPH-5316}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 30005 (\N{CJK UNIFIED IDEOGRAPH-7535}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 21387 (\N{CJK UNIFIED IDEOGRAPH-538B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 26102 (\N{CJK UNIFIED IDEOGRAPH-65F6}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 38388 (\N{CJK UNIFIED IDEOGRAPH-95F4}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 23567 (\N{CJK UNIFIED IDEOGRAPH-5C0F}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 21382 (\N{CJK UNIFIED IDEOGRAPH-5386}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 21490 (\N{CJK UNIFIED IDEOGRAPH-53F2}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 25968 (\N{CJK UNIFIED IDEOGRAPH-6570}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 25454 (\N{CJK UNIFIED IDEOGRAPH-636E}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 30495 (\N{CJK UNIFIED IDEOGRAPH-771F}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 23454 (\N{CJK UNIFIED IDEOGRAPH-5B9E}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 20540 (\N{CJK UNIFIED IDEOGRAPH-503C}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 32418 (\N{CJK UNIFIED IDEOGRAPH-7EA2}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 34013 (\N{CJK UNIFIED IDEOGRAPH-84DD}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 32511 (\N{CJK UNIFIED IDEOGRAPH-7EFF}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 35797 (\N{CJK UNIFIED IDEOGRAPH-8BD5}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 26679 (\N{CJK UNIFIED IDEOGRAPH-6837}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 26412 (\N{CJK UNIFIED IDEOGRAPH-672C}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 32467 (\N{CJK UNIFIED IDEOGRAPH-7ED3}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:177: UserWarning: Glyph 26524 (\N{CJK UNIFIED IDEOGRAPH-679C}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+✓ 保存图像: results/prediction_sample_1.png
+✓ 保存图像: results/prediction_sample_2.png
+✓ 保存图像: results/prediction_sample_3.png
+
+生成误差分析图...
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 35823 (\N{CJK UNIFIED IDEOGRAPH-8BEF}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 24046 (\N{CJK UNIFIED IDEOGRAPH-5DEE}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 39057 (\N{CJK UNIFIED IDEOGRAPH-9891}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 25968 (\N{CJK UNIFIED IDEOGRAPH-6570}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 32418 (\N{CJK UNIFIED IDEOGRAPH-7EA2}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 34013 (\N{CJK UNIFIED IDEOGRAPH-84DD}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 32511 (\N{CJK UNIFIED IDEOGRAPH-7EFF}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 21508 (\N{CJK UNIFIED IDEOGRAPH-5404}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 36890 (\N{CJK UNIFIED IDEOGRAPH-901A}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 36947 (\N{CJK UNIFIED IDEOGRAPH-9053}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 20998 (\N{CJK UNIFIED IDEOGRAPH-5206}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:204: UserWarning: Glyph 24067 (\N{CJK UNIFIED IDEOGRAPH-5E03}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 39057 (\N{CJK UNIFIED IDEOGRAPH-9891}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 25968 (\N{CJK UNIFIED IDEOGRAPH-6570}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 35823 (\N{CJK UNIFIED IDEOGRAPH-8BEF}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 24046 (\N{CJK UNIFIED IDEOGRAPH-5DEE}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 32418 (\N{CJK UNIFIED IDEOGRAPH-7EA2}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 34013 (\N{CJK UNIFIED IDEOGRAPH-84DD}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 32511 (\N{CJK UNIFIED IDEOGRAPH-7EFF}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 21508 (\N{CJK UNIFIED IDEOGRAPH-5404}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 36890 (\N{CJK UNIFIED IDEOGRAPH-901A}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 36947 (\N{CJK UNIFIED IDEOGRAPH-9053}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 20998 (\N{CJK UNIFIED IDEOGRAPH-5206}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:206: UserWarning: Glyph 24067 (\N{CJK UNIFIED IDEOGRAPH-5E03}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+✓ 保存误差分析图: results/error_distribution.png
+
+生成云遮挡事件识别示例...
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 26102 (\N{CJK UNIFIED IDEOGRAPH-65F6}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 38388 (\N{CJK UNIFIED IDEOGRAPH-95F4}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 23567 (\N{CJK UNIFIED IDEOGRAPH-5C0F}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 24402 (\N{CJK UNIFIED IDEOGRAPH-5F52}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 19968 (\N{CJK UNIFIED IDEOGRAPH-4E00}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 21270 (\N{CJK UNIFIED IDEOGRAPH-5316}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 30005 (\N{CJK UNIFIED IDEOGRAPH-7535}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 21387 (\N{CJK UNIFIED IDEOGRAPH-538B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 20113 (\N{CJK UNIFIED IDEOGRAPH-4E91}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 36974 (\N{CJK UNIFIED IDEOGRAPH-906E}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 25377 (\N{CJK UNIFIED IDEOGRAPH-6321}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 20107 (\N{CJK UNIFIED IDEOGRAPH-4E8B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 20214 (\N{CJK UNIFIED IDEOGRAPH-4EF6}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 33021 (\N{CJK UNIFIED IDEOGRAPH-80FD}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 21147 (\N{CJK UNIFIED IDEOGRAPH-529B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 31034 (\N{CJK UNIFIED IDEOGRAPH-793A}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 20363 (\N{CJK UNIFIED IDEOGRAPH-4F8B}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 26469 (\N{CJK UNIFIED IDEOGRAPH-6765}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 20102 (\N{CJK UNIFIED IDEOGRAPH-4E86}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 30495 (\N{CJK UNIFIED IDEOGRAPH-771F}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:235: UserWarning: Glyph 23454 (\N{CJK UNIFIED IDEOGRAPH-5B9E}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 24402 (\N{CJK UNIFIED IDEOGRAPH-5F52}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 19968 (\N{CJK UNIFIED IDEOGRAPH-4E00}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 21270 (\N{CJK UNIFIED IDEOGRAPH-5316}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 30005 (\N{CJK UNIFIED IDEOGRAPH-7535}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 21387 (\N{CJK UNIFIED IDEOGRAPH-538B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 20113 (\N{CJK UNIFIED IDEOGRAPH-4E91}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 36974 (\N{CJK UNIFIED IDEOGRAPH-906E}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 25377 (\N{CJK UNIFIED IDEOGRAPH-6321}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 20107 (\N{CJK UNIFIED IDEOGRAPH-4E8B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 20214 (\N{CJK UNIFIED IDEOGRAPH-4EF6}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 39044 (\N{CJK UNIFIED IDEOGRAPH-9884}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 27979 (\N{CJK UNIFIED IDEOGRAPH-6D4B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 33021 (\N{CJK UNIFIED IDEOGRAPH-80FD}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 21147 (\N{CJK UNIFIED IDEOGRAPH-529B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 31034 (\N{CJK UNIFIED IDEOGRAPH-793A}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 20363 (\N{CJK UNIFIED IDEOGRAPH-4F8B}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 26469 (\N{CJK UNIFIED IDEOGRAPH-6765}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 20102 (\N{CJK UNIFIED IDEOGRAPH-4E86}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 26102 (\N{CJK UNIFIED IDEOGRAPH-65F6}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 38388 (\N{CJK UNIFIED IDEOGRAPH-95F4}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 23567 (\N{CJK UNIFIED IDEOGRAPH-5C0F}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 40657 (\N{CJK UNIFIED IDEOGRAPH-9ED1}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+D:\Courses\Thermoelectric_Project\Code_1\lightweight_version\test.py:237: UserWarning: Glyph 30495 (\N{CJK UNIFIED IDEOGRAPH-771F}) missing from font(s) DejaVu Sans.
+EOGRAPH-5B9E}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+EOGRAPH-5B9E}) missing from font(s) DejaVu Sans.
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+  plt.savefig(save_path, dpi=150, bbox_inches='tight')
+✓ 保存云遮挡示例图: results/cloud_event_prediction.png
+✓ 保存云遮挡示例图: results/cloud_event_prediction.png
+
+============================================================
+测试完成！所有结果已保存到 'results/' 目录
+============================================================
+
+(ai) D:\Courses\Thermoelectric_Project\Code_1\lightweight_version>tensorboard --logdir=logs/
+D:\Anaconda\envs\ai\Lib\site-packages\tensorboard\default.py:30: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+TensorFlow installation not found - running with reduced feature set.
+I1102 19:48:53.458184  3848 plugin.py:429] Monitor runs begin
+Serving TensorBoard on localhost; to expose to the network, use a proxy or pass --bind_all
+TensorBoard 2.20.0 at http://localhost:6006/ (Press CTRL+C to quit)
+
+(ai) D:\Courses\Thermoelectric_Project\Code_1\lightweight_version>
