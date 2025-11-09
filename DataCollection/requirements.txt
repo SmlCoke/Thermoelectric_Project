@@ -1,0 +1,19 @@
+# Python依赖库列表
+# 用于TEC热电芯片数据采集系统
+
+# Adafruit ADS1x15 ADC库
+adafruit-circuitpython-ads1x15>=2.2.0
+
+# Adafruit Blinka库（CircuitPython兼容层）
+adafruit-blinka>=8.0.0
+
+# 板级支持
+Adafruit-PlatformDetect>=3.0.0
+
+# GPIO和I2C底层库
+RPi.GPIO>=0.7.0
+
+# 可选：数据分析库（用于后续数据处理）
+# pandas>=1.5.0
+# matplotlib>=3.5.0
+# numpy>=1.21.0
