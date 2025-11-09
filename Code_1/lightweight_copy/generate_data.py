@@ -41,6 +41,7 @@ def generate_simulated_data(config, num_days=7, save_path=None):
     # 时间参数
     seconds_per_day = 24 * 3600
     total_seconds = num_days * seconds_per_day
+    print("total_seconds:", total_seconds)
     total_timesteps = total_seconds // config.SAMPLE_INTERVAL
     
     print(f"生成参数:")
@@ -55,6 +56,11 @@ def generate_simulated_data(config, num_days=7, save_path=None):
     # 生成时间轴（小时为单位，方便计算日周期）
     time_hours = np.arange(total_timesteps) * config.SAMPLE_INTERVAL / 3600
     
+    # 打印完整numpy数组时不省略
+    np.set_printoptions(threshold=np.inf, suppress=True)
+    print("\n时间轴示例 (小时):")
+    print(time_hours[:24 * 3 * 360])  # 打印前3天的时间
+
     # === 通道定义 ===
     # 0-3: VSW黑, VSW红, VSW蓝, VSW绿
     # 4-7: VLW黑, VLW红, VLW蓝, VLW绿
@@ -142,8 +148,9 @@ def visualize_data(data, time_hours, save_dir='.'):
     fig, axes = plt.subplots(2, 1, figsize=(15, 8))
     
     # 只显示前3天的数据，避免图太挤
-    display_hours = min(72, len(time_hours))
+    display_hours = min(72*360, len(time_hours))
     time_display = time_hours[:display_hours]
+    
     
     # === 短波通道 ===
     ax = axes[0]
@@ -170,7 +177,7 @@ def visualize_data(data, time_hours, save_dir='.'):
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    save_path = os.path.join(save_dir, 'data_visualization.png')
+    save_path = os.path.join(save_dir, 'data_visualization.svg')
     plt.savefig(save_path, dpi=150)
     print(f" 可视化图已保存: {save_path}")
     plt.close()
@@ -186,7 +193,7 @@ def visualize_data(data, time_hours, save_dir='.'):
     
     time_slice = time_hours[start_idx:end_idx]
     ax.plot(time_slice, data[start_idx:end_idx, 0], label='VSW_black', linewidth=2)
-    ax.plot(time_slice, data[start_idx:end_idx, 4], label='VLW黑_black', linewidth=2)
+    ax.plot(time_slice, data[start_idx:end_idx, 4], label='VLW_black', linewidth=2)
     ax.set_xlabel('Time(Hour)')
     ax.set_ylabel('Voltage (Normalized)')
     ax.set_title('Cloud Cover Event Example: VSW Decrease, VLW Increase')
@@ -194,7 +201,7 @@ def visualize_data(data, time_hours, save_dir='.'):
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    save_path = os.path.join(save_dir, 'cloud_event_example.png')
+    save_path = os.path.join(save_dir, 'cloud_event_example.svg')
     plt.savefig(save_path, dpi=150)
     print(f" 云遮挡示例图已保存: {save_path}")
     plt.close()
