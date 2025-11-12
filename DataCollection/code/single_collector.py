@@ -47,10 +47,17 @@ def initialize_csv_file(filename):
         print(f"CSV文件初始化失败: {e}")
 
 def save_data(filename, timestamp, datetime_str, voltage1, voltage2):
+    """保存数据到CSV文件，立即写入SD卡确保数据持久化"""
     try:
-        with open(filename, 'a', newline='') as f:
+        # buffering=1 表示行缓冲，每写入一行立即刷新到磁盘
+        with open(filename, 'a', newline='', buffering=1) as f:
             writer = csv.writer(f)
             writer.writerow([timestamp, datetime_str, voltage1, voltage2])
+            # 显式刷新缓冲区，确保数据写入SD卡
+            f.flush()
+            # 同步到磁盘，防止掉电丢失数据
+            import os
+            os.fsync(f.fileno())
     except Exception as e:
         print(f"数据保存失败: {e}")
 
