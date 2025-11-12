@@ -130,13 +130,19 @@ def initialize_csv_file(filename):
 
 
 def save_data(filename, timestamp, datetime_str, voltages):
-    """保存数据到CSV文件"""
+    """保存数据到CSV文件，立即写入SD卡确保数据持久化"""
     try:
-        with open(filename, 'a', newline='') as f:
+        # buffering=1 表示行缓冲，每写入一行立即刷新到磁盘
+        with open(filename, 'a', newline='', buffering=1) as f:
             writer = csv.writer(f)
             # 将 None 转为空字符串，便于阅读/后处理
             row = [timestamp, datetime_str] + [("" if v is None else f"{v:.9f}") for v in voltages]
             writer.writerow(row)
+            # 显式刷新缓冲区，确保数据写入SD卡
+            f.flush()
+            # 同步到磁盘，防止掉电丢失数据
+            import os
+            os.fsync(f.fileno())
     except Exception as e:
         print(f"数据保存失败: {e}")
 
