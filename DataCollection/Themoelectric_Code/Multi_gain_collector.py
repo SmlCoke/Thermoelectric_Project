@@ -35,6 +35,9 @@ GAIN_SETTINGS = {
 # 需要测试的增益列表（从高精度到低精度）
 GAINS_TO_TEST = [16, 8, 4, 2, 1]
 
+# 每个TEC在CSV中的列数（各增益值 + 最优值 + 最优增益）
+COLUMNS_PER_TEC = len(GAINS_TO_TEST) + 2
+
 
 def setup_all_ads1115():
     """初始化所有4个ADS1115"""
@@ -206,8 +209,7 @@ def save_data(filename, timestamp, datetime_str, voltages):
             for voltage_data in voltages:
                 if voltage_data is None:
                     # 如果整个TEC数据缺失，填充空值
-                    num_cols = len(GAINS_TO_TEST) + 2  # 各增益 + optimal + optimal_gain
-                    row.extend([''] * num_cols)
+                    row.extend([''] * COLUMNS_PER_TEC)
                 else:
                     # 添加各增益下的电压值
                     for gain in GAINS_TO_TEST:
@@ -246,13 +248,11 @@ def display_voltages(sample_count, datetime_str, voltages):
                 
                 if opt_v is not None:
                     print(f"  {tec_names[tec_idx]}: {opt_v:8.6f} V ({opt_v*1000:8.3f} mV) [最优增益: {opt_g}]")
-                    # 可选：显示所有增益下的值（调试用）
-                    # gain_str = ", ".join([f"G{g}:{v_data.get(f'gain_{g}', 'N/A'):.6f}V" for g in GAINS_TO_TEST if v_data.get(f'gain_{g}') is not None])
-                    # print(f"      所有增益: {gain_str}")
                 else:
                     print(f"  {tec_names[tec_idx]}: 所有增益下均读取失败")
         
-        if i < 7:  # 不在最后一组后面打印空行
+        # 在每对TEC之间打印空行（除了最后一对）
+        if i < len(tec_names) - 2:
             print()
 
 
