@@ -75,6 +75,12 @@ def setup_all_ads1115():
 def read_differential_voltage_with_gain(ads, channel_pair, gain):
     """
     使用指定增益读取差分电压（兼容新版 API：使用整数通道号）
+    
+    设计说明：
+    - 每次读取前设置增益，确保使用正确的量程
+    - 10ms延迟确保ADS1115内部放大器稳定
+    - 单线程顺序访问，无并发问题
+    
     channel_pair: '0-1' 或 '2-3'
     gain: 增益值 (16, 8, 4, 2, 1)
     返回电压（V）或 None
@@ -102,6 +108,12 @@ def read_differential_voltage_with_gain(ads, channel_pair, gain):
 def read_multi_gain_voltage(ads, channel_pair):
     """
     对指定通道采集多个增益下的电压值，并选择最优值
+    
+    设计说明：
+    - 采集所有增益下的数据以提供完整记录（满足需求：记录所有增益值到CSV）
+    - 不采用早停优化，因为需要完整的多增益数据用于后续分析
+    - 单线程顺序访问ADC，无并发风险
+    
     返回字典：{
         'gain_16': voltage, 'gain_8': voltage, ... ,
         'optimal_voltage': best_voltage, 'optimal_gain': best_gain
@@ -109,7 +121,7 @@ def read_multi_gain_voltage(ads, channel_pair):
     """
     result = {}
     
-    # 采集所有增益下的电压
+    # 采集所有增益下的电压（注意：需要全部采集以记录到CSV）
     for gain in GAINS_TO_TEST:
         voltage = read_differential_voltage_with_gain(ads, channel_pair, gain)
         result[f'gain_{gain}'] = voltage
