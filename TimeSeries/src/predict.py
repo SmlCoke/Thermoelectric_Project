@@ -22,9 +22,13 @@ from model_gru import GRUModel
 from dataset import ThermoelectricDataset
 
 
-# 设置中文字体
-rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans']
-rcParams['axes.unicode_minus'] = False
+# 设置中文字体（如果可用）
+try:
+    rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial']
+    rcParams['axes.unicode_minus'] = False
+except Exception:
+    # 如果字体设置失败，使用默认字体
+    pass
 
 
 class Predictor:
