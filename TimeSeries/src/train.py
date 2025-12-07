@@ -362,7 +362,7 @@ if __name__ == '__main__':
     
     # 数据参数
     parser.add_argument('--data_dir', type=str, 
-                       default=os.path.join(os.path.dirname(os.path.dirname(__file__))),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'),
                        help='CSV文件所在目录（默认为TimeSeries目录）')
     parser.add_argument('--window_size', type=int, default=60,
                        help='输入序列长度')
@@ -396,10 +396,10 @@ if __name__ == '__main__':
     
     # 保存参数
     parser.add_argument('--save_dir', type=str, 
-                       default=os.path.join(os.path.dirname(__file__), '..', 'checkpoints'),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'checkpoints'),
                        help='模型保存目录')
     parser.add_argument('--log_dir', type=str, 
-                       default=os.path.join(os.path.dirname(__file__), '..', 'logs'),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs'),
                        help='日志保存目录')
     parser.add_argument('--save_interval', type=int, default=20,
                        help='保存检查点的间隔')
