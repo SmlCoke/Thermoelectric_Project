@@ -26,9 +26,10 @@ from dataset import ThermoelectricDataset
 try:
     rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial']
     rcParams['axes.unicode_minus'] = False
-except Exception:
+except (KeyError, ValueError) as e:
     # 如果字体设置失败，使用默认字体
-    pass
+    import warnings
+    warnings.warn(f"Could not set font configuration: {e}. Using default fonts.")
 
 
 class Predictor:

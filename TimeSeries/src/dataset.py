@@ -194,8 +194,9 @@ class ThermoelectricDataset(Dataset):
         num_segments = len(self.segments)
         num_train_segments = int(num_segments * self.train_ratio)
         
-        # 随机打乱片段索引
-        segment_indices = np.random.permutation(num_segments)
+        # 随机打乱片段索引（使用固定种子以保证可重复性）
+        rng = np.random.RandomState(42)
+        segment_indices = rng.permutation(num_segments)
         train_indices = set(segment_indices[:num_train_segments])
         val_indices = set(segment_indices[num_train_segments:])
         
