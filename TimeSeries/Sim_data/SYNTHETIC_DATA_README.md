@@ -133,14 +133,14 @@ python train.py --model gru --num_epochs 100 --batch_size 64
 # 预测12月5日的数据
 python predict.py \
     --model_path ../checkpoints/best_model.pth \
-    --csv_path ../data1205.csv \
+    --csv_path ../Sim_data/data1205.csv \
     --start_idx 100 \
     --plot
 
 # 预测12月8日的数据
 python predict.py \
     --model_path ../checkpoints/best_model.pth \
-    --csv_path ../data1208.csv \
+    --csv_path ../Sim_data/data1208.csv \
     --start_idx 50 \
     --plot
 ```

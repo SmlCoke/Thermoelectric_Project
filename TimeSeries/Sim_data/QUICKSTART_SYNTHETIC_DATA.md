@@ -68,7 +68,7 @@ cd src
 # 对12月5日的数据进行预测
 python predict.py \
     --model_path ../checkpoints/best_model.pth \
-    --csv_path ../data1205.csv \
+    --csv_path ../Sim_data/data1205.csv \
     --start_idx 100 \
     --plot
 

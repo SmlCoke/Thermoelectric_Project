@@ -53,9 +53,9 @@ def main():
     print("=" * 80)
     
     # 分析真实数据
-    print("\n真实数据 (data/data1122.csv):")
+    print("\n真实数据 (../data/data1122.csv):")
     try:
-        real_stats = analyze_file('data/data1122.csv')
+        real_stats = analyze_file('../data/data1122.csv')
         print(f"  样本数: {real_stats['samples']}")
         print(f"  TEC1 范围: [{real_stats['min']:.6f}, {real_stats['max']:.6f}]")
         print(f"  TEC1 均值: {real_stats['mean']:.6f} ± {real_stats['std']:.6f}")

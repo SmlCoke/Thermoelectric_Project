@@ -102,7 +102,7 @@ python train.py --model gru --hidden_size 64 --num_epochs 30
 # 测试推理
 python predict.py \
     --model_path ../checkpoints/best_model.pth \
-    --csv_path ../data1205.csv \
+    --csv_path ../Sim_data/data1205.csv \
     --plot
 ```
 
