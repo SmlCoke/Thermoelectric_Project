@@ -17,7 +17,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 import pickle
-
+# 确保输出编码为UTF-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class ThermoelectricDataset(Dataset):
     """
@@ -59,12 +61,14 @@ class ThermoelectricDataset(Dataset):
         self.segments = self._load_segments()
         
         # 数据标准化
+        # 标准化公式：normalized_value = (value - mean)/std
         self.scaler = None
         if self.normalize:
             self._fit_scaler()
             self._normalize_segments()
         
         # 从片段中提取样本
+        # fj: 滑动窗口取样，这里的窗口就是输入序列长度加上预测序列长度
         self.samples = self._extract_samples()
         
         print(f"数据集初始化完成:")
@@ -95,6 +99,7 @@ class ThermoelectricDataset(Dataset):
                 voltage_data = df[self.voltage_columns].values
                 
                 # 检查数据有效性
+                # fj: 确保csv文件的数据量要覆盖输入序列长度和预测序列长度总和
                 if len(voltage_data) < self.window_size + self.predict_steps:
                     print(f"警告: {os.path.basename(csv_file)} 数据点过少，已跳过")
                     continue
@@ -321,14 +326,21 @@ def create_dataloaders(data_dir, batch_size=32, window_size=60, predict_steps=10
 
 # 测试代码
 if __name__ == '__main__':
+    
+
     # 测试数据加载
     print("=" * 60)
     print("测试数据集加载")
     print("=" * 60)
     
     # 假设CSV文件在上级目录
-    data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)))
-    
+    import argparse
+    parser = argparse.ArgumentParser(description="Thermoelectric Dataset")
+    parser.add_argument("--data_dir", "-d", type=str, default="../Sim_data", help="数据目录")
+    args = parser.parse_args()
+
+    data_dir = args.data_dir
+
     try:
         # 创建数据集
         dataset = ThermoelectricDataset(
