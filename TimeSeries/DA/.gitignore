@@ -1,0 +1,23 @@
+# 忽略生成的降采样数据
+output/
+test_output/
+augmented_data/
+augmented_sim_data/
+augmented_max/
+*_N[0-9]*.csv
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.log
