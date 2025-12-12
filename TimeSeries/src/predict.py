@@ -15,6 +15,10 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from matplotlib.font_manager import FontProperties
+T_16 = FontProperties(fname= r'C:\\Windows\\Fonts\\times.ttf', size = 16)    # Times New Roman
+T_14 = FontProperties(fname= r'C:\\Windows\\Fonts\\times.ttf', size = 14)    # Times New Roman
+T_12 = FontProperties(fname= r'C:\\Windows\\Fonts\\times.ttf', size = 12)    # Times New Roman
 
 # 导入自定义模块
 from model_lstm import LSTMModel
@@ -31,6 +35,9 @@ except (KeyError, ValueError) as e:
     import warnings
     warnings.warn(f"Could not set font configuration: {e}. Using default fonts.")
 
+# 确保输出编码为UTF-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class Predictor:
     """预测器类，封装预测逻辑"""
@@ -54,6 +61,7 @@ class Predictor:
         # 加载检查点
         print(f"加载模型: {model_path}")
         checkpoint = torch.load(model_path, map_location=self.device)
+        # fj: 保持预测时的配置参数与训练时一致。
         self.config = checkpoint['config']
         
         # 创建模型
@@ -109,6 +117,7 @@ class Predictor:
             predictions: numpy array, 形状 [predict_steps, 8]
         """
         # 标准化输入（如果有scaler）
+        # fj: 这里用的mean和std参数都是训练集的整体参数
         if self.scaler is not None:
             input_sequence = self.scaler.transform(input_sequence)
         
@@ -118,6 +127,7 @@ class Predictor:
         # 预测
         with torch.no_grad():
             predictions, _ = self.model(x)
+        # fj: 固定预测当初训练时的设置好的预测步数，并非1步
         
         # 转换回numpy
         predictions = predictions.squeeze(0).cpu().numpy()  # [predict_steps, 8]
@@ -172,11 +182,12 @@ class Predictor:
             predictions: numpy array
             ground_truth: numpy array (如果有的话)
         """
+        # fj: 预测的步数与predict函数相同，固定为self.config['predict_steps']
         # 读取数据
         df = pd.read_csv(csv_path)
         voltage_columns = [
-            'TEC1_Optimal(V)', 'TEC2_Optimal(V)', 'TEC3_Optimal(V)', 'TEC4_Optimal(V)',
-            'TEC5_Optimal(V)', 'TEC6_Optimal(V)', 'TEC7_Optimal(V)', 'TEC8_Optimal(V)'
+            "Yellow", "Ultraviolet", "Infrared", "Red",
+            "Green", "Blue", "Transparent", "Violet"
         ]
         data = df[voltage_columns].values
         
@@ -222,7 +233,10 @@ def plot_predictions(input_seq, predictions, ground_truth=None, channel=0, save_
         save_path: str or None, 保存图像的路径
     """
     plt.figure(figsize=(12, 6))
-    
+    voltage_columns = [
+        "Yellow", "Ultraviolet", "Infrared", "Red",
+        "Green", "Blue", "Transparent", "Violet"
+    ]
     # 时间轴
     input_time = np.arange(len(input_seq))
     pred_time = np.arange(len(input_seq), len(input_seq) + len(predictions))
@@ -237,15 +251,15 @@ def plot_predictions(input_seq, predictions, ground_truth=None, channel=0, save_
     if ground_truth is not None:
         plt.plot(pred_time, ground_truth[:, channel], 'g-', label='Ground Truth', linewidth=2)
     
-    plt.xlabel('Time Step', fontsize=12)
-    plt.ylabel(f'TEC{channel+1} Voltage (V)', fontsize=12)
-    plt.title(f'Time Series Prediction - Channel {channel+1}', fontsize=14)
-    plt.legend(fontsize=10)
+    plt.xlabel('Time Step', fontproperties=T_14)
+    plt.ylabel(f'{voltage_columns[channel]} Voltage (V)', fontproperties=T_14)
+    plt.title(f'Time Series Prediction - Channel {channel+1}', fontproperties=T_14)
+    plt.legend(prop = T_12)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     
     if save_path is not None:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.savefig(save_path, bbox_inches='tight')
         print(f"图像已保存到: {save_path}")
     else:
         plt.show()
@@ -262,7 +276,10 @@ def plot_all_channels(input_seq, predictions, ground_truth=None, save_path=None)
     
     input_time = np.arange(len(input_seq))
     pred_time = np.arange(len(input_seq), len(input_seq) + len(predictions))
-    
+    voltage_columns = [
+        "Yellow", "Ultraviolet", "Infrared", "Red",
+        "Green", "Blue", "Transparent", "Violet"
+    ]
     for channel in range(8):
         ax = axes[channel]
         
@@ -276,16 +293,16 @@ def plot_all_channels(input_seq, predictions, ground_truth=None, save_path=None)
         if ground_truth is not None:
             ax.plot(pred_time, ground_truth[:, channel], 'g-', label='Ground Truth', linewidth=1.5)
         
-        ax.set_xlabel('Time Step')
-        ax.set_ylabel(f'TEC{channel+1} (V)')
-        ax.set_title(f'Channel {channel+1}')
-        ax.legend(fontsize=8)
+        ax.set_xlabel('Time Step', fontproperties=T_14)
+        ax.set_ylabel(f'{voltage_columns[channel]} (V)', fontproperties=T_14)
+        ax.set_title(f'Channel {channel+1}', fontproperties=T_14)
+        ax.legend(prop = T_12)
         ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
     
     if save_path is not None:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.savefig(save_path, bbox_inches='tight')
         print(f"图像已保存到: {save_path}")
     else:
         plt.show()
@@ -327,21 +344,22 @@ def main(args):
             # 读取完整数据用于绘图
             df = pd.read_csv(args.csv_path)
             voltage_columns = [
-                'TEC1_Optimal(V)', 'TEC2_Optimal(V)', 'TEC3_Optimal(V)', 'TEC4_Optimal(V)',
-                'TEC5_Optimal(V)', 'TEC6_Optimal(V)', 'TEC7_Optimal(V)', 'TEC8_Optimal(V)'
+            "Yellow", "Ultraviolet", "Infrared", "Red",
+            "Green", "Blue", "Transparent", "Violet"
             ]
             data = df[voltage_columns].values
             window_size = predictor.config['window_size']
             input_seq = data[args.start_idx:args.start_idx + window_size]
             
             # 绘制所有通道
-            plot_save_path = args.save_path.replace('.npy', '_plot.png') if args.save_path else None
+            plot_save_path = args.save_path.replace('.npy', '_all_channels.svg') if args.save_path else None
             plot_all_channels(input_seq, predictions, ground_truth, save_path=plot_save_path)
             
-            # 绘制单个通道（第一个通道）
-            single_plot_path = args.save_path.replace('.npy', '_channel1.png') if args.save_path else None
-            plot_predictions(input_seq, predictions, ground_truth, channel=0, save_path=single_plot_path)
-    
+            # 绘制单个通道
+            for channel_index in range(8):
+                single_plot_path = args.save_path.replace('.npy', f'_{voltage_columns[channel_index]}.svg') if args.save_path else None
+                plot_predictions(input_seq, predictions, ground_truth, channel=channel_index, save_path=single_plot_path)
+
     else:
         print("请提供CSV文件路径 (--csv_path)")
 
@@ -349,7 +367,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='使用训练好的模型进行预测')
     
-    parser.add_argument('--model_path', type=str, required=True,
+    parser.add_argument('--model_path', type=str, required=True,  
                        help='模型检查点路径 (例如: ./checkpoints/best_model.pth)')
     parser.add_argument('--csv_path', type=str, default=None,
                        help='输入CSV文件路径')

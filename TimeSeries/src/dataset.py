@@ -12,7 +12,7 @@
 import os
 import glob
 import numpy as np
-import pandas as pd
+import pandas as pd # 确保导入了 pandas
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
@@ -52,9 +52,13 @@ class ThermoelectricDataset(Dataset):
         self.train_ratio = train_ratio
         
         # 数据列名（8个热电芯片通道）
+        # self.voltage_columns = [
+        #     'TEC1_Optimal(V)', 'TEC2_Optimal(V)', 'TEC3_Optimal(V)', 'TEC4_Optimal(V)',
+        #     'TEC5_Optimal(V)', 'TEC6_Optimal(V)', 'TEC7_Optimal(V)', 'TEC8_Optimal(V)'
+        # ]
         self.voltage_columns = [
-            'TEC1_Optimal(V)', 'TEC2_Optimal(V)', 'TEC3_Optimal(V)', 'TEC4_Optimal(V)',
-            'TEC5_Optimal(V)', 'TEC6_Optimal(V)', 'TEC7_Optimal(V)', 'TEC8_Optimal(V)'
+            "Yellow", "Ultraviolet", "Infrared", "Red",
+            "Green", "Blue", "Transparent", "Violet"
         ]
         
         # 加载所有数据片段
@@ -92,9 +96,49 @@ class ThermoelectricDataset(Dataset):
         segments = []
         for csv_file in csv_files:
             try:
-                # 读取CSV文件
                 df = pd.read_csv(csv_file)
                 
+                # === 修改开始：详细定位缺失值 ===
+                # 1. 检查是否有缺失值
+                null_mask = df[self.voltage_columns].isnull()
+                if null_mask.values.any():
+                    print(f"\n{'!'*20}")
+                    print(f"警告: 文件 {os.path.basename(csv_file)} 发现缺失值！")
+                    
+                    # 获取缺失值的坐标 (行索引, 列索引)
+                    rows, cols = np.where(null_mask)
+                    
+                    # 打印前 20 个缺失位置（避免刷屏）
+                    print(f"共发现 {len(rows)} 个缺失数据点，具体位置如下 (显示前20个):")
+                    for r, c in zip(rows[:20], cols[:20]):
+                        col_name = self.voltage_columns[c]
+                        # Excel行号通常是 索引+2 (因为有表头且索引从0开始)
+                        print(f"  - 行索引: {r} (Excel约第 {r+2} 行), 列: '{col_name}'")
+                    
+                    if len(rows) > 20:
+                        print(f"  ... 还有 {len(rows)-20} 个缺失点未显示")
+                    
+                    print(f"正在进行填充...")
+                    print(f"{'!'*20}\n")
+
+                    # 方法A: 前向填充 (用前一秒的数据填补空缺)
+                    df[self.voltage_columns] = df[self.voltage_columns].fillna(method='ffill')
+                    # 方法B: 如果开头就是空的，用后向填充
+                    df[self.voltage_columns] = df[self.voltage_columns].fillna(method='bfill')
+                    # 方法C: 如果还有空的（比如整列都是空），填0
+                    df[self.voltage_columns] = df[self.voltage_columns].fillna(0)
+                # === 修改结束 ===
+                
+                # 2. 确保数据是数值类型 (处理可能的字符串 'error' 等)
+                for col in self.voltage_columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                
+                # 再次检查转换后是否产生了 NaN (非数值字符变为了NaN)
+                if df[self.voltage_columns].isnull().values.any():
+                    print(f"警告: 文件 {os.path.basename(csv_file)} 包含非数值数据，已填充为0")
+                    df[self.voltage_columns] = df[self.voltage_columns].fillna(0)
+                # ====================
+
                 # 提取电压数据（8个通道）
                 voltage_data = df[self.voltage_columns].values
                 
@@ -336,7 +380,7 @@ if __name__ == '__main__':
     # 假设CSV文件在上级目录
     import argparse
     parser = argparse.ArgumentParser(description="Thermoelectric Dataset")
-    parser.add_argument("--data_dir", "-d", type=str, default="../Sim_data", help="数据目录")
+    parser.add_argument("--data_dir", "-d", type=str, default="../Prac_data", help="数据目录")
     args = parser.parse_args()
 
     data_dir = args.data_dir

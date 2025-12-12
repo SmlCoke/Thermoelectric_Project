@@ -22,7 +22,9 @@ from torch.utils.tensorboard import SummaryWriter
 from dataset import create_dataloaders
 from model_lstm import LSTMModel
 from model_gru import GRUModel
-
+# 确保输出编码为UTF-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class Trainer:
     """训练器类，封装训练逻辑"""
@@ -73,7 +75,34 @@ class Trainer:
             'train_loss': [],
             'val_loss': []
         }
-    
+        # 新增：记录起始 epoch，默认为 1
+        self.start_epoch = 1 
+
+    # === 新增方法：加载检查点 ===
+    def resume_from_checkpoint(self, checkpoint_path):
+        """
+        从检查点恢复训练状态
+        """
+        print(f"正在加载检查点: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        
+        # 1. 恢复模型参数
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        
+        # 2. 恢复优化器和调度器
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        
+        # 3. 恢复训练历史和最佳损失
+        self.history = checkpoint.get('history', {'train_loss': [], 'val_loss': []})
+        self.best_val_loss = checkpoint.get('val_loss', float('inf'))
+        
+        # 4. 设置起始 epoch (下一轮 = 保存的轮数 + 1)
+        self.start_epoch = checkpoint['epoch'] + 1
+        
+        print(f"成功恢复! 将从 Epoch {self.start_epoch} 继续训练")
+    # ===========================
+
     def train_epoch(self, epoch):
         """
         训练一个epoch
@@ -157,12 +186,13 @@ class Trainer:
         完整的训练流程
         """
         print("=" * 60)
-        print("开始训练")
+        print(f"开始训练 (从 Epoch {self.start_epoch} 到 {self.config['num_epochs']})") # 修改打印信息
         print("=" * 60)
         
         start_time = time.time()
         
-        for epoch in range(1, self.config['num_epochs'] + 1):
+        # 修改循环范围：使用 self.start_epoch
+        for epoch in range(self.start_epoch, self.config['num_epochs'] + 1):
             epoch_start = time.time()
             
             # 训练
@@ -353,6 +383,15 @@ def main(args):
     # 创建训练器
     trainer = Trainer(model, train_loader, val_loader, device, config)
     
+    # === 新增：如果有恢复参数，加载检查点 ===
+    if args.resume:
+        if os.path.isfile(args.resume):
+            trainer.resume_from_checkpoint(args.resume)
+        else:
+            print(f"错误: 找不到检查点文件 {args.resume}")
+            return
+    # ======================================
+    
     # 开始训练
     trainer.train()
 
@@ -362,7 +401,7 @@ if __name__ == '__main__':
     
     # 数据参数
     parser.add_argument('--data_dir', type=str, 
-                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../Prac_data'),
                        help='CSV文件所在目录（默认为TimeSeries目录）')
     parser.add_argument('--window_size', type=int, default=60,
                        help='输入序列长度')
@@ -396,13 +435,17 @@ if __name__ == '__main__':
     
     # 保存参数
     parser.add_argument('--save_dir', type=str, 
-                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'checkpoints'),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../Prac_train', 'checkpoints'),
                        help='模型保存目录')
     parser.add_argument('--log_dir', type=str, 
-                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs'),
+                       default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../Prac_train', 'logs'),
                        help='日志保存目录')
     parser.add_argument('--save_interval', type=int, default=20,
                        help='保存检查点的间隔')
+    
+    # === 新增参数 ===
+    parser.add_argument('--resume', type=str, default=None,
+                       help='检查点文件路径，用于恢复训练 (例如: ../Prac_train/checkpoints/checkpoint_epoch_20.pth)')
     
     args = parser.parse_args()
     main(args)
