@@ -34,7 +34,7 @@ if __name__ == "__main__":
         "TEC8_Optimal(V)": "Transparent"
     }
 
-    compile = re.compile(r"data(\d+).csv")
+    compile = re.compile(r"data(\d+)_standard.csv")
     match = compile.match(args.input_file)
     if not match:
         raise ValueError("Invalid input file format.")
@@ -52,4 +52,4 @@ if __name__ == "__main__":
     # df中的每一个数据×1000倍，切换单位
     df[voltage_columns] = df[voltage_columns] * 1000
 
-    df.to_csv(f"data{data_id}_standard.csv", index=False)
+    df.to_csv(f"data{data_id}.csv", index=False)
