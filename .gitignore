@@ -66,3 +66,7 @@ events.out.tfevents.*
 *.tmp
 tmp/
 temp/
+
+# train and predict directories
+Prac_train/
+Prac_predict/

@@ -6,7 +6,9 @@ GRU模型实现
 
 import torch
 import torch.nn as nn
-
+# 确保输出编码为UTF-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class GRUModel(nn.Module):
     """

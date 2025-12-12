@@ -6,7 +6,9 @@ LSTM模型实现
 
 import torch
 import torch.nn as nn
-
+# 确保输出编码为UTF-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 class LSTMModel(nn.Module):
     """
@@ -93,7 +95,11 @@ class LSTMModel(nn.Module):
         # 取最后一个时间步的输出
         # last_output: [batch_size, hidden_size]
         last_output = lstm_out[:, -1, :]
-        
+        # fj: lstm_out维度: [batch_size, seq_len, hidden_size]
+        # fj: 这个张量包含了模型在阅读输入序列时，每一个时间步（第1秒、第2秒...直到第60秒）产生的理解（隐藏状态）。
+        # fj: 目的是 “获取对整个历史片段的最终总结”。
+        # fj: 信息累积（Memory Accumulation）： LSTM 的核心机制是“记忆”。当它处理到第 60 个时间步时，它的隐藏状态不仅仅包含第 60 秒的信息，还通过内部的门控机制（遗忘门、输入门）保留了第 1 秒到第 59 秒中所有重要的历史信息。因此，最后一个时间步的状态，就是整个输入窗口（过去3小时/60个点）的浓缩精华。
+
         # Dropout
         last_output = self.dropout_layer(last_output)
         
