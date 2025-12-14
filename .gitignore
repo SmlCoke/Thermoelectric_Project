@@ -44,6 +44,7 @@ logs/
 checkpoints/
 results/
 outputs/
+*.log
 
 # Jupyter Notebook
 .ipynb_checkpoints
