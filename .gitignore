@@ -35,9 +35,10 @@ env/
 *.hdf5
 
 # CSV files (but allow synthetic test data in TimeSeries/)
-*.csv
+# *.csv
 !TimeSeries/data*.csv
 !TimeSeries/1*.csv
+Sim_data/
 
 # Logs and checkpoints
 logs/
