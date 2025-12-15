@@ -1,0 +1,6 @@
+outlier-threshold: 3
+smooth-window: 5(对于1214:7)
+其余采用默认配置
+
+Trained by HYJ:
+prompt: python  train.py --data_dir ..\Prac_data\denoised_mini --batch_size 32 --stride 2 --model lstm --hidden_size 128 --num_epochs 100 --num_layers 2 --save_dir ../Prac_train/LSTM1214_mini/checkpoints --log_dir ../Prac_train/LSTM1214_mini/logs
