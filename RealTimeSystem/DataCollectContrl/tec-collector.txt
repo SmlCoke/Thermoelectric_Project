@@ -1,0 +1,29 @@
+[Unit]
+Description=TEC Thermoelectric Data Collector
+Documentation=https://github.com/SmlCoke/Thermoelectric_Project
+After=local-fs.target
+Wants=local-fs.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/dev/ads1115_project/Themoelectric
+Environment="PATH=/home/pi/dev/ads1115_project/py311/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/pi/dev/ads1115_project/py311/bin/python3 /home/pi/dev/ads1115_project/Themoelectric/Full_collector.py
+# ExecStart=/bin/bash -c '/home/pi/dev/ads1115_project/py311/bin/python3 /home/pi/dev/ads1115_project/Themoelectric/Full_collector.py >> /home/pi/dev/ads1115_project/Themoelectric/logs/collector.log 2>&1'
+
+# 自动重启策略
+Restart=always
+RestartSec=10
+
+# 标准输出和错误输出重定向到日志
+StandardOutput=append:/home/pi/dev/ads1115_project/Themoelectric/logs/collector.log
+StandardError=append:/home/pi/dev/ads1115_project/Themoelectric/logs/collector.log
+
+# 资源限制（可选）
+Nice=0
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
