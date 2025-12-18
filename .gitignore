@@ -71,5 +71,5 @@ tmp/
 temp/
 
 # train and predict directories
-Prac_train/
-Prac_predict/
+!Prac_train/
+!Prac_predict/
