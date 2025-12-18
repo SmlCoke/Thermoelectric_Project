@@ -345,8 +345,11 @@ def main():
         logger.info("使用模拟数据进行测试")
         collector = MockDataCollector()
     else:
-        # TODO: 实际部署时，替换为真实的数据采集接口
-        logger.info("使用模拟数据 (请在实际部署时替换为真实采集接口)")
+        # 在实际部署时，需要替换这个分支的代码，连接到真实的 Full_collector.py
+        # 当前保持使用 MockDataCollector 以便于开发和测试
+        # 例如：可以通过读取共享文件、管道或socket与采集脚本通信
+        logger.info("注意: 当前使用模拟数据采集器")
+        logger.info("在实际部署时，请修改此处代码连接到 Full_collector.py")
         collector = MockDataCollector()
     
     # 主循环

@@ -23,8 +23,10 @@ from collections import deque
 from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass, asdict, field
 
-# 添加 TimeSeries/src 到路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src'))
+# 添加 TimeSeries/src 到路径（如果存在）
+_timeseries_src_path = os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src')
+if os.path.exists(_timeseries_src_path):
+    sys.path.insert(0, _timeseries_src_path)
 
 # 第三方库
 try:

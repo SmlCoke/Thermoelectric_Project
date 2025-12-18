@@ -36,7 +36,9 @@ except ImportError:
 
 try:
     import matplotlib
-    matplotlib.use('Qt5Agg')
+    # 只在未设置后端时才设置 Qt5Agg 后端
+    if matplotlib.get_backend() == 'agg' or not matplotlib.get_backend():
+        matplotlib.use('Qt5Agg')
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.figure import Figure
     import matplotlib.pyplot as plt
