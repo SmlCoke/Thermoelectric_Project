@@ -23,8 +23,10 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-# 添加 TimeSeries/src 到路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src'))
+# 添加 TimeSeries/src 到路径（如果存在）
+_timeseries_src_path = os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src')
+if os.path.exists(_timeseries_src_path):
+    sys.path.insert(0, _timeseries_src_path)
 
 # 配置日志
 logging.basicConfig(
@@ -134,7 +136,10 @@ class InferenceEngine:
         
         # 创建模型
         if model_type == 'lstm':
-            from model_lstm import LSTMModel
+            try:
+                from model_lstm import LSTMModel
+            except ImportError as e:
+                raise ImportError(f"无法导入 LSTM 模型模块。请确保 TimeSeries/src 目录存在: {e}")
             model = LSTMModel(
                 input_size=8,
                 hidden_size=config.get('hidden_size', 128),
@@ -144,7 +149,10 @@ class InferenceEngine:
                 dropout=config.get('dropout', 0.2)
             )
         elif model_type == 'gru':
-            from model_gru import GRUModel
+            try:
+                from model_gru import GRUModel
+            except ImportError as e:
+                raise ImportError(f"无法导入 GRU 模型模块。请确保 TimeSeries/src 目录存在: {e}")
             model = GRUModel(
                 input_size=8,
                 hidden_size=config.get('hidden_size', 128),
