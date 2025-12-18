@@ -2,15 +2,16 @@
 
 ## 概述
 
-该模块运行在 Raspberry Pi 5 上，负责将采集到的热电芯片电压数据通过 HTTP POST 发送到主机端服务器。
+该模块运行在 Raspberry Pi 上，负责从 `Full_collector.py` 写入的 CSV 文件中读取最新的电压数据，并通过 HTTP POST 发送到主机端服务器。
 
 ## 功能特点
 
-1. **HTTP POST 数据发送** - 将 8 通道电压数据以 JSON 格式发送到主机端
-2. **自动重试机制** - 网络异常时自动重试，提高数据传输可靠性
-3. **本地 CSV 备份** - 可选的本地数据备份，防止数据丢失
-4. **连接状态检查** - 启动时检查与主机端的连接状态
-5. **发送统计** - 记录发送成功/失败次数和成功率
+1. **CSV 文件读取** - 从 `Full_collector.py` 生成的 CSV 文件中读取最新数据
+2. **HTTP POST 数据发送** - 将 8 通道电压数据以 JSON 格式发送到主机端
+3. **自动重试机制** - 网络异常时自动重试，提高数据传输可靠性
+4. **本地 CSV 备份** - 可选的本地数据备份，防止数据丢失
+5. **连接状态检查** - 启动时检查与主机端的连接状态
+6. **发送统计** - 记录发送成功/失败次数和成功率
 
 ## 数据格式
 
@@ -23,65 +24,83 @@
 }
 ```
 
-通道顺序：
-1. Yellow (黄色)
-2. Ultraviolet (紫外)
-3. Infrared (红外)
-4. Red (红色)
-5. Green (绿色)
-6. Blue (蓝色)
-7. Transparent (透明)
-8. Violet (紫色)
+通道顺序（对应 TEC1-TEC8）：
+1. Yellow (黄色) - TEC1
+2. Ultraviolet (紫外) - TEC2
+3. Infrared (红外) - TEC3
+4. Red (红色) - TEC4
+5. Green (绿色) - TEC5
+6. Blue (蓝色) - TEC6
+7. Transparent (透明) - TEC7
+8. Violet (紫色) - TEC8
 
 ## 使用方法
 
-### 基本使用
+### 基本使用（从 CSV 文件读取）
 
 ```bash
+# 使用默认 CSV 目录
 python pi_sender.py --host 192.168.1.100 --port 5000
+
+# 指定 CSV 目录
+python pi_sender.py --host 192.168.1.100 --port 5000 --csv-dir /home/pi/dev/ads1115_project/Themoelectric
 ```
 
 ### 完整参数
 
 ```bash
 python pi_sender.py \
-    --host 192.168.1.100 \      # 主机端IP地址 (必需)
-    --port 5000 \               # 主机端端口 (默认: 5000)
-    --interval 10 \             # 采集间隔/秒 (默认: 10)
-    --max-retries 3 \           # 最大重试次数 (默认: 3)
-    --backup-dir ./backup \     # 备份目录 (默认: ./backup)
-    --no-backup \               # 禁用本地备份
-    --test                      # 使用模拟数据测试
+    --host 192.168.1.100 \                              # 主机端IP地址 (必需)
+    --port 5000 \                                       # 主机端端口 (默认: 5000)
+    --interval 10 \                                     # 发送间隔/秒 (默认: 10)
+    --max-retries 3 \                                   # 最大重试次数 (默认: 3)
+    --backup-dir ./backup \                             # 备份目录 (默认: ./backup)
+    --no-backup \                                       # 禁用本地备份
+    --csv-dir /path/to/csv \                            # CSV文件目录
+    --test                                              # 使用模拟数据测试
 ```
 
 ### 测试模式
 
 ```bash
-# 使用模拟数据进行测试
+# 使用模拟数据进行测试（不需要 CSV 文件）
 python pi_sender.py --host 192.168.1.100 --test
 ```
 
-## 与 Full_collector.py 集成
+## 数据采集器类
 
-在实际部署时，需要修改 `MockDataCollector` 类，替换为真实的数据采集接口。
+### CSVDataCollector
 
-示例集成方式：
+从 `Full_collector.py` 写入的 CSV 文件中读取数据：
 
 ```python
-class RealDataCollector:
-    def __init__(self, collector_script_path):
-        # 初始化与采集脚本的接口
-        pass
-    
-    def collect(self) -> List[float]:
-        # 从 Full_collector.py 获取真实数据
-        # 可以通过读取共享文件、管道或其他IPC方式
-        pass
+from pi_sender import CSVDataCollector
+
+collector = CSVDataCollector(csv_dir='/home/pi/dev/ads1115_project/Themoelectric')
+values, timestamp = collector.collect()
+# values: [0.45, 0.52, 0.48, 0.55, 0.50, 0.47, 0.53, 0.49]
+# timestamp: "2025-12-18 12:00:00"
+```
+
+CSV 文件格式要求：
+- 文件名模式: `TEC_multi_gain_data_*.csv`
+- 必须包含 `TEC{N}_Optimal(V)` 列（N=1-8）
+- 必须包含 `DateTime` 列
+
+### MockDataCollector
+
+用于测试的模拟数据采集器：
+
+```python
+from pi_sender import MockDataCollector
+
+collector = MockDataCollector()
+values, timestamp = collector.collect()
 ```
 
 ## 系统服务配置
 
-如需将此脚本配置为系统服务，可创建 systemd 服务文件：
+### tec-sender.service
 
 ```ini
 # /etc/systemd/system/tec-sender.service
@@ -92,8 +111,8 @@ After=network.target tec-collector.service
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/RealTimeSystem
-ExecStart=/usr/bin/python3 pi_sender.py --host 192.168.1.100 --port 5000
+WorkingDirectory=/home/pi/dev/ads1115_project/Themoelectric
+ExecStart=/home/pi/dev/ads1115_project/py311/bin/python3 /path/to/pi_sender.py --host 192.168.1.100 --port 5000 --csv-dir /home/pi/dev/ads1115_project/Themoelectric
 Restart=always
 RestartSec=10
 
@@ -107,6 +126,18 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 sudo systemctl enable tec-sender
 sudo systemctl start tec-sender
+```
+
+## 与模拟采集脚本配合使用
+
+当没有 ADS1115 硬件时，可以使用 `mock_collector.py` 生成模拟数据：
+
+```bash
+# 终端1: 启动模拟数据采集
+python DataCollectContrl/mock_collector.py --output-dir /home/pi/dev/ads1115_project/Themoelectric
+
+# 终端2: 启动数据转发
+python pi_sender.py --host 192.168.1.100 --csv-dir /home/pi/dev/ads1115_project/Themoelectric
 ```
 
 ## 日志

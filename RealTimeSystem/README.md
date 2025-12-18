@@ -4,38 +4,38 @@
 
 本系统实现了热电芯片电压的实时采集、传输、预测和可视化功能。系统由两个独立的程序组成：
 
-1. **边缘端 (Raspberry Pi 5)**: 负责数据采集和发送
+1. **边缘端 (Raspberry Pi)**: 负责数据采集和发送
 2. **主机端 (Windows/Linux PC)**: 负责数据接收、模型推理和可视化
 
 ## 系统架构
 
 ```
-┌─────────────────────┐         HTTP POST          ┌─────────────────────────────┐
-│   Raspberry Pi 5    │  ─────────────────────────> │        主机端 PC           │
-│                     │         /data               │                             │
-│  ┌───────────────┐  │                             │  ┌───────────────────────┐  │
-│  │Full_collector │  │    {                        │  │    Flask Server       │  │
-│  │    .py        │  │      "timestamp": "...",    │  │    (server.py)        │  │
-│  └───────────────┘  │      "values": [v1...v8]    │  └───────────┬───────────┘  │
-│         │           │    }                        │              │              │
-│         ▼           │                             │              ▼              │
-│  ┌───────────────┐  │                             │  ┌───────────────────────┐  │
-│  │  pi_sender    │──┼────────────────────────────>│  │   Sliding Window      │  │
-│  │    .py        │  │                             │  │   (60 time points)    │  │
-│  └───────────────┘  │                             │  └───────────┬───────────┘  │
-│                     │                             │              │              │
-└─────────────────────┘                             │              ▼              │
-                                                    │  ┌───────────────────────┐  │
-      Pi 与主机通过网线连接                          │  │  Inference Engine     │  │
-                                                    │  │  (LSTM/GRU Model)     │  │
-                                                    │  └───────────┬───────────┘  │
-                                                    │              │              │
-                                                    │              ▼              │
-                                                    │  ┌───────────────────────┐  │
-                                                    │  │    GUI Application    │  │
-                                                    │  │    (PyQt5 + MPL)      │  │
-                                                    │  └───────────────────────┘  │
-                                                    └─────────────────────────────┘
+┌─────────────────────────────────────┐         HTTP POST          ┌─────────────────────────────┐
+│         Raspberry Pi 3B             │  ─────────────────────────> │        主机端 PC           │
+│                                     │         /data               │                             │
+│  ┌───────────────────────────────┐  │                             │  ┌───────────────────────┐  │
+│  │   Full_collector.py           │  │    {                        │  │    Flask Server       │  │
+│  │   (或 mock_collector.py)      │  │      "timestamp": "...",    │  │    (server.py)        │  │
+│  │   - 采集8通道电压数据           │  │      "values": [v1...v8]    │  └───────────┬───────────┘  │
+│  │   - 写入CSV文件                │  │    }                        │              │              │
+│  └───────────────┬───────────────┘  │                             │              ▼              │
+│                  │                  │                             │  ┌───────────────────────┐  │
+│                  ▼ (读取CSV)        │                             │  │   Sliding Window      │  │
+│  ┌───────────────────────────────┐  │                             │  │   (60 time points)    │  │
+│  │        pi_sender.py           │──┼────────────────────────────>│  └───────────┬───────────┘  │
+│  │   - 读取CSV最新数据            │  │                             │              │              │
+│  │   - HTTP POST转发              │  │                             │              ▼              │
+│  └───────────────────────────────┘  │                             │  ┌───────────────────────┐  │
+│                                     │                             │  │  Inference Engine     │  │
+└─────────────────────────────────────┘                             │  │  (LSTM/GRU Model)     │  │
+                                                                    │  └───────────┬───────────┘  │
+      Pi 与主机通过网线连接                                           │              │              │
+                                                                    │              ▼              │
+                                                                    │  ┌───────────────────────┐  │
+                                                                    │  │    GUI Application    │  │
+                                                                    │  │    (PyQt5 + MPL)      │  │
+                                                                    │  └───────────────────────┘  │
+                                                                    └─────────────────────────────┘
 ```
 
 ## 通信方式
@@ -56,33 +56,38 @@
 ```
 
 **通道顺序**:
-1. Yellow (黄色)
-2. Ultraviolet (紫外)
-3. Infrared (红外)
-4. Red (红色)
-5. Green (绿色)
-6. Blue (蓝色)
-7. Transparent (透明)
-8. Violet (紫色)
+1. Yellow (黄色) - TEC1
+2. Ultraviolet (紫外) - TEC2
+3. Infrared (红外) - TEC3
+4. Red (红色) - TEC4
+5. Green (绿色) - TEC5
+6. Blue (蓝色) - TEC6
+7. Transparent (透明) - TEC7
+8. Violet (紫色) - TEC8
 
 ## 文件结构
 
 ```
 RealTimeSystem/
-├── README.md              # 本文档
-├── init.md                # 任务需求说明
+├── README.md                      # 本文档
+├── init.md                        # 任务需求说明
 │
-├── pi_sender.py           # 边缘端数据发送模块
-├── pi_sender.md           # 发送模块说明文档
+├── pi_sender.py                   # 边缘端数据发送模块
+├── pi_sender.md                   # 发送模块说明文档
 │
-├── server.py              # 主机端 HTTP 接收服务
-├── server.md              # 服务端说明文档
+├── server.py                      # 主机端 HTTP 接收服务
+├── server.md                      # 服务端说明文档
 │
-├── inference_engine.py    # 推理引擎模块
-├── inference_engine.md    # 推理引擎说明文档
+├── inference_engine.py            # 推理引擎模块
+├── inference_engine.md            # 推理引擎说明文档
 │
-├── gui_app.py             # GUI 可视化应用程序
-└── gui_app.md             # GUI 应用说明文档
+├── gui_app.py                     # GUI 可视化应用程序
+├── gui_app.md                     # GUI 应用说明文档
+│
+└── DataCollectContrl/             # 数据采集控制脚本
+    ├── Full_collector.py          # 真实数据采集脚本 (需要ADS1115硬件)
+    ├── mock_collector.py          # 模拟数据采集脚本 (用于测试)
+    └── tec-collector.txt          # systemd服务配置文件
 ```
 
 ## 快速启动
@@ -111,17 +116,32 @@ python gui_app.py --port 5000
 python gui_app.py --port 5000 --model-path ../TimeSeries/Prac_train/checkpoints/best_model.pth
 ```
 
-### 3. 启动边缘端发送程序
+### 3. 启动边缘端程序
 
 在 Raspberry Pi 上:
+
+**方式A: 使用模拟数据测试（无需ADS1115硬件）**
 ```bash
-cd RealTimeSystem
+# 终端1: 启动模拟数据采集
+cd /home/pi/dev/ads1115_project/Themoelectric
+python mock_collector.py --interval 10
 
-# 测试模式（使用模拟数据）
+# 终端2: 启动数据转发
+python pi_sender.py --host <主机IP地址> --port 5000 --csv-dir /home/pi/dev/ads1115_project/Themoelectric
+```
+
+**方式B: 使用真实数据（需要ADS1115硬件）**
+```bash
+# 启动真实数据采集服务
+sudo systemctl start tec-collector
+
+# 启动数据转发
+python pi_sender.py --host <主机IP地址> --port 5000 --csv-dir /home/pi/dev/ads1115_project/Themoelectric
+```
+
+**方式C: 纯测试模式（不需要CSV文件）**
+```bash
 python pi_sender.py --host <主机IP地址> --port 5000 --test
-
-# 正式运行
-python pi_sender.py --host <主机IP地址> --port 5000
 ```
 
 ### 4. 网络配置
@@ -141,11 +161,29 @@ ip addr
 
 ## 模块说明
 
-### pi_sender.py
+### DataCollectContrl/Full_collector.py
 
-负责在 Raspberry Pi 上采集数据并通过 HTTP POST 发送到主机端。
+真实数据采集脚本，运行在 Raspberry Pi 上，使用 ADS1115 ADC 采集 8 通道热电芯片电压。
+
+- **文件路径**: `/home/pi/dev/ads1115_project/Themoelectric/Full_collector.py`
+- **采集间隔**: 10 秒
+- **输出文件**: `TEC_multi_gain_data_{timestamp}.csv`
+
+### DataCollectContrl/mock_collector.py
+
+模拟数据采集脚本，用于在没有 ADS1115 硬件的情况下测试系统。
 
 主要功能：
+- 生成具有趋势和噪声的模拟电压数据
+- CSV 输出格式与 Full_collector.py 完全一致
+- 可配置采集间隔和输出目录
+
+### pi_sender.py
+
+负责在 Raspberry Pi 上读取 CSV 数据并通过 HTTP POST 发送到主机端。
+
+主要功能：
+- 从 CSV 文件读取最新电压数据
 - HTTP POST 数据发送
 - 网络异常自动重试
 - 本地 CSV 数据备份
