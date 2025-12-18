@@ -31,7 +31,7 @@ env/
 
 # Data files
 *.npz
-*.csv
+# *.csv
 *.h5
 *.hdf5
 
