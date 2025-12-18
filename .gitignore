@@ -35,11 +35,18 @@ env/
 *.h5
 *.hdf5
 
+# CSV files (but allow synthetic test data in TimeSeries/)
+# *.csv
+!TimeSeries/data*.csv
+!TimeSeries/1*.csv
+Sim_data/
+
 # Logs and checkpoints
 logs/
 checkpoints/
 results/
 outputs/
+*.log
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -62,3 +69,7 @@ events.out.tfevents.*
 *.tmp
 tmp/
 temp/
+
+# train and predict directories
+Prac_train/
+Prac_predict/
