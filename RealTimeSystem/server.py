@@ -220,6 +220,10 @@ class DataServer:
         self.receive_count = 0
         self.start_time = None
         
+        # 推理状态标志，防止重复推理
+        self._inference_running = False
+        self._inference_lock = threading.Lock()
+        
         logger.info(f"数据服务器初始化完成 (端口: {port})")
     
     def _register_routes(self):
@@ -260,12 +264,17 @@ class DataServer:
                 self.window.add(data_point)
                 self.receive_count += 1
                 
-                # 检查是否可以进行推理
+                # 检查是否可以进行推理（使用锁防止重复推理）
                 inference_triggered = False
-                if self.window.is_ready() and self.inference_callback is not None:
-                    # 在后台线程中执行推理
-                    threading.Thread(target=self._run_inference, daemon=True).start()
-                    inference_triggered = True
+                with self._inference_lock:
+                    if (self.window.is_ready() and 
+                        self.inference_callback is not None and 
+                        not self._inference_running):
+                        # 标记推理正在运行
+                        self._inference_running = True
+                        # 在后台线程中执行推理
+                        threading.Thread(target=self._run_inference, daemon=True).start()
+                        inference_triggered = True
                 
                 return jsonify({
                     'status': 'ok',
@@ -344,6 +353,10 @@ class DataServer:
                 self.inference_callback()
         except Exception as e:
             logger.error(f"推理出错: {e}")
+        finally:
+            # 无论推理是否成功，都重置标志以允许下一次推理
+            with self._inference_lock:
+                self._inference_running = False
     
     def set_inference_callback(self, callback: Callable):
         """设置推理回调函数"""
