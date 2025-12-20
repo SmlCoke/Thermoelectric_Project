@@ -318,10 +318,32 @@ class CSVDataCollector:
     包含列：Timestamp, DateTime, TEC1_Gain16(V), ..., TEC1_Optimal(V), TEC1_OptimalGain, ...
     """
     
-    # CSV 文件中的最优电压列名（对应8个TEC通道）
-    OPTIMAL_COLUMNS = [
-        'TEC1_Optimal(V)', 'TEC2_Optimal(V)', 'TEC3_Optimal(V)', 'TEC4_Optimal(V)',
-        'TEC5_Optimal(V)', 'TEC6_Optimal(V)', 'TEC7_Optimal(V)', 'TEC8_Optimal(V)'
+    # CSV 文件中 TEC 通道与颜色的对应关系
+    # TEC1 → Blue, TEC2 → Green, TEC3 → Yellow, TEC4 → Violet
+    # TEC5 → Red, TEC6 → Infrared, TEC7 → Ultraviolet, TEC8 → Transparent
+    TEC_TO_COLOR = {
+        'TEC1_Optimal(V)': 'Blue',
+        'TEC2_Optimal(V)': 'Green',
+        'TEC3_Optimal(V)': 'Yellow',
+        'TEC4_Optimal(V)': 'Violet',
+        'TEC5_Optimal(V)': 'Red',
+        'TEC6_Optimal(V)': 'Infrared',
+        'TEC7_Optimal(V)': 'Ultraviolet',
+        'TEC8_Optimal(V)': 'Transparent',
+    }
+    
+    # 发送顺序：按颜色排列
+    # Yellow, Ultraviolet, Infrared, Red, Green, Blue, Transparent, Violet
+    # 对应的 TEC 列：TEC3, TEC7, TEC6, TEC5, TEC2, TEC1, TEC8, TEC4
+    OPTIMAL_COLUMNS_ORDERED = [
+        'TEC3_Optimal(V)',  # Yellow
+        'TEC7_Optimal(V)',  # Ultraviolet
+        'TEC6_Optimal(V)',  # Infrared
+        'TEC5_Optimal(V)',  # Red
+        'TEC2_Optimal(V)',  # Green
+        'TEC1_Optimal(V)',  # Blue
+        'TEC8_Optimal(V)',  # Transparent
+        'TEC4_Optimal(V)',  # Violet
     ]
     
     def __init__(self, csv_dir: str, file_pattern: str = "TEC_multi_gain_data_*.csv"):
@@ -380,9 +402,10 @@ class CSVDataCollector:
                 
                 last_row = rows[-1]
                 
-                # 提取最优电压值
+                # 按发送顺序提取最优电压值
+                # 顺序: Yellow, Ultraviolet, Infrared, Red, Green, Blue, Transparent, Violet
                 values = []
-                for col in self.OPTIMAL_COLUMNS:
+                for col in self.OPTIMAL_COLUMNS_ORDERED:
                     try:
                         value_str = last_row.get(col, '')
                         values.append(float(value_str) if value_str else 0.0)

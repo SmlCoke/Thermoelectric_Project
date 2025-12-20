@@ -55,15 +55,25 @@
 }
 ```
 
-**通道顺序**:
-1. Yellow (黄色) - TEC1
-2. Ultraviolet (紫外) - TEC2
-3. Infrared (红外) - TEC3
-4. Red (红色) - TEC4
-5. Green (绿色) - TEC5
-6. Blue (蓝色) - TEC6
-7. Transparent (透明) - TEC7
-8. Violet (紫色) - TEC8
+**通道顺序** (values 数组的顺序):
+1. Yellow (黄色) - 对应 CSV 中的 TEC3
+2. Ultraviolet (紫外) - 对应 CSV 中的 TEC7
+3. Infrared (红外) - 对应 CSV 中的 TEC6
+4. Red (红色) - 对应 CSV 中的 TEC5
+5. Green (绿色) - 对应 CSV 中的 TEC2
+6. Blue (蓝色) - 对应 CSV 中的 TEC1
+7. Transparent (透明) - 对应 CSV 中的 TEC8
+8. Violet (紫色) - 对应 CSV 中的 TEC4
+
+**CSV 文件中 TEC 通道与颜色的映射关系**:
+- TEC1_Optimal(V) → Blue
+- TEC2_Optimal(V) → Green
+- TEC3_Optimal(V) → Yellow
+- TEC4_Optimal(V) → Violet
+- TEC5_Optimal(V) → Red
+- TEC6_Optimal(V) → Infrared
+- TEC7_Optimal(V) → Ultraviolet
+- TEC8_Optimal(V) → Transparent
 
 ## 文件结构
 

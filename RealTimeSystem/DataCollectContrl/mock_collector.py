@@ -67,15 +67,18 @@ class MockVoltageGenerator:
         self.num_channels = num_channels
         
         # 每个通道的基准电压（mV 级别的热电效应电压）
+        # CSV 中 TEC 通道与颜色的对应关系：
+        # TEC1 → Blue, TEC2 → Green, TEC3 → Yellow, TEC4 → Violet
+        # TEC5 → Red, TEC6 → Infrared, TEC7 → Ultraviolet, TEC8 → Transparent
         self.base_voltages = [
-            0.45,   # TEC1 - Yellow
-            0.52,   # TEC2 - Ultraviolet
-            0.48,   # TEC3 - Infrared
-            0.55,   # TEC4 - Red
-            0.50,   # TEC5 - Green
-            0.47,   # TEC6 - Blue
-            0.53,   # TEC7 - Transparent
-            0.49,   # TEC8 - Violet
+            0.47,   # TEC1 - Blue
+            0.50,   # TEC2 - Green
+            0.45,   # TEC3 - Yellow
+            0.49,   # TEC4 - Violet
+            0.55,   # TEC5 - Red
+            0.48,   # TEC6 - Infrared
+            0.52,   # TEC7 - Ultraviolet
+            0.53,   # TEC8 - Transparent
         ]
         
         # 趋势参数（模拟温度缓慢变化）
@@ -213,8 +216,11 @@ def display_voltages(sample_count: int, datetime_str: str, voltages: list) -> No
         datetime_str: str, 时间字符串
         voltages: list, 电压数据
     """
-    tec_names = ['TEC1/Yellow', 'TEC2/UV', 'TEC3/IR', 'TEC4/Red',
-                 'TEC5/Green', 'TEC6/Blue', 'TEC7/Trans', 'TEC8/Violet']
+    # TEC 通道与颜色的对应关系
+    # TEC1 → Blue, TEC2 → Green, TEC3 → Yellow, TEC4 → Violet
+    # TEC5 → Red, TEC6 → Infrared, TEC7 → Ultraviolet, TEC8 → Transparent
+    tec_names = ['TEC1/Blue', 'TEC2/Green', 'TEC3/Yellow', 'TEC4/Violet',
+                 'TEC5/Red', 'TEC6/IR', 'TEC7/UV', 'TEC8/Trans']
     
     print(f"\n[{sample_count:04d}] {datetime_str}")
     print("-" * 60)
