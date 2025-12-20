@@ -492,14 +492,16 @@ class MainWindow(QMainWindow):
     def _on_data_updated(self):
         """数据更新信号处理"""
         self._update_status_labels()
-        self._update_plot()
+        # 不在这里更新图表，避免频繁更新导致阻塞
+        # 图表会通过定时器或推理完成后更新
     
     def _on_inference_completed(self, result):
         """推理完成信号处理"""
         self.last_prediction = result
         self.prediction_history.append(result)
         self._update_status("推理完成")
-        self._update_plot()
+        # 使用 QTimer 延迟更新图表，避免阻塞主线程
+        QTimer.singleShot(100, self._update_plot)
     
     def _on_status_changed(self, status: str):
         """状态改变信号处理"""
@@ -592,7 +594,8 @@ class MainWindow(QMainWindow):
                 # 单通道显示
                 self._plot_single_channel(data, self.current_channel)
             
-            self.canvas.draw()
+            # 使用 draw_idle 替代 draw，避免阻塞主线程
+            self.canvas.draw_idle()
             
         except Exception as e:
             logger.error(f"更新图表出错: {e}")
@@ -611,7 +614,7 @@ class MainWindow(QMainWindow):
         for i, ax in enumerate(self.canvas.axes):
             ax.clear()
             
-            if data is not None:
+            if data is not None and len(data) > 0:
                 # 绘制历史数据
                 time_axis = np.arange(len(data))
                 ax.plot(time_axis, data[:, i], 
@@ -638,10 +641,14 @@ class MainWindow(QMainWindow):
             ax.grid(True, alpha=0.3)
             ax.tick_params(axis='both', labelsize=8)
             
-            if data is not None:
+            if data is not None and len(data) > 0:
                 ax.legend(loc='upper left', fontsize=7)
         
-        self.canvas.fig.tight_layout(pad=2.0)
+        # 只在首次或必要时调用 tight_layout
+        try:
+            self.canvas.fig.tight_layout(pad=2.0)
+        except Exception:
+            pass  # 忽略 tight_layout 错误
     
     def _plot_single_channel(self, data: Optional[np.ndarray], channel: int):
         """
@@ -658,7 +665,7 @@ class MainWindow(QMainWindow):
         ax = self.canvas.axes[0]
         ax.clear()
         
-        if data is not None:
+        if data is not None and len(data) > 0:
             # 绘制历史数据
             time_axis = np.arange(len(data))
             ax.plot(time_axis, data[:, channel],
@@ -679,12 +686,13 @@ class MainWindow(QMainWindow):
                        label=f'预测 ({self.predict_steps}步)')
                 
                 # 连接历史数据和预测
-                ax.plot([time_axis[-1], pred_time[0]],
-                       [data[-1, channel], pred_data[0, channel]],
-                       color='#FF5722',
-                       linewidth=1,
-                       linestyle=':',
-                       alpha=0.5)
+                if len(time_axis) > 0 and len(pred_time) > 0:
+                    ax.plot([time_axis[-1], pred_time[0]],
+                           [data[-1, channel], pred_data[0, channel]],
+                           color='#FF5722',
+                           linewidth=1,
+                           linestyle=':',
+                           alpha=0.5)
         
         # 设置标题和标签
         ax.set_title(f'{self.CHANNEL_NAMES[channel]} 通道电压', fontsize=14, fontweight='bold')
@@ -693,7 +701,11 @@ class MainWindow(QMainWindow):
         ax.grid(True, alpha=0.3)
         ax.legend(loc='upper left', fontsize=10)
         
-        self.canvas.fig.tight_layout(pad=3.0)
+        # 只在必要时调用 tight_layout
+        try:
+            self.canvas.fig.tight_layout(pad=3.0)
+        except Exception:
+            pass  # 忽略 tight_layout 错误
     
     def closeEvent(self, event):
         """窗口关闭事件"""
