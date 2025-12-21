@@ -56,7 +56,8 @@ def correct_outliers(df: pd.DataFrame, data_columns: List[str],
     """
     修正异常值（方法1）
     
-    检测相对于相邻点的异常跳变，并用局部均值替换
+    检测相对于相邻点的异常跳变，并将异常值限制在阈值边界上（Clamping）
+    而不是直接替换为均值，这样保留了数据的方向性（偏大或偏小）。
     
     Args:
         df: 原始数据DataFrame
@@ -72,15 +73,28 @@ def correct_outliers(df: pd.DataFrame, data_columns: List[str],
     total_outliers = 0
     
     for col in data_columns:
-        # 检测异常值
-        outliers = detect_outliers_zscore(df_corrected[col], window_size, threshold)
-        num_outliers = outliers.sum()
+        # 计算滚动统计量
+        rolling_mean = df_corrected[col].rolling(window=window_size, center=True, min_periods=1).mean()
+        rolling_std = df_corrected[col].rolling(window=window_size, center=True, min_periods=1).std()
+        
+        # 避免除以零
+        rolling_std = rolling_std.replace(0, 1e-10)
+        
+        # 计算上下界
+        upper_bound = rolling_mean + threshold * rolling_std
+        lower_bound = rolling_mean - threshold * rolling_std
+        
+        # 识别异常值
+        outliers_high = df_corrected[col] > upper_bound
+        outliers_low = df_corrected[col] < lower_bound
+        
+        num_outliers = outliers_high.sum() + outliers_low.sum()
         total_outliers += num_outliers
         
         if num_outliers > 0:
-            # 使用局部均值替换异常值
-            rolling_mean = df_corrected[col].rolling(window=window_size, center=True, min_periods=1).mean()
-            df_corrected.loc[outliers, col] = rolling_mean[outliers]
+            # 将异常值限制在边界上 (Clamping)
+            df_corrected.loc[outliers_high, col] = upper_bound[outliers_high]
+            df_corrected.loc[outliers_low, col] = lower_bound[outliers_low]
     
     return df_corrected, total_outliers
 
@@ -390,18 +404,17 @@ def main():
                        help='降噪方法：outlier=异常值修正, smooth=滑动平均, both=两者都用（默认）')
     
     # 异常值检测参数
-    parser.add_argument('--outlier-window', type=int, default=5,
+    parser.add_argument('--outlier_window', type=int, default=5,
                        help='异常值检测窗口大小（默认: 5）')
-    parser.add_argument('--outlier-threshold', type=float, default=3.0,
+    parser.add_argument('--outlier_threshold', type=float, default=3.0,
                        help='异常值阈值（Z-score，默认: 3.0）')
     
     # 滑动平均参数
-    parser.add_argument('--smooth-window', type=int, default=3,
+    parser.add_argument('--smooth_window', type=int, default=3,
                        help='滑动平均窗口大小（默认: 3）')
     
     # 其他参数
-    parser.add_argument('--time-interval', type=int, default=None,
-                       choices=[5, 10],
+    parser.add_argument('--time_interval', type=int, default=None,
                        help='时间间隔（秒），留空则自动检测')
     parser.add_argument('-p', '--pattern', type=str, default='*.csv',
                        help='文件匹配模式，仅用于目录模式（默认: *.csv）')
