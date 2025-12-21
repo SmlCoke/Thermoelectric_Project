@@ -16,7 +16,7 @@
 #### 2.2 sub6_d
 先进行$r=6$的降采样
 
-### 3. `temp`————中间数据集，一般只经过了denoise
+### 3. `preprocess`————中间数据集，一般只经过了denoise
 #### 3.1 denoise1
 **denoise配置**
 outlier_threshold = 1.75
