@@ -500,7 +500,7 @@ class MainWindow(QMainWindow):
         self.last_prediction = result
         self.prediction_history.append(result)
         self._update_status("推理完成")
-        # 立即更新图表，但使用优化的非阻塞方式
+        # 立即更新图表（已移除 tight_layout 调用，不再阻塞主线程）
         self._update_plot()
     
     def _on_status_changed(self, status: str):
@@ -645,7 +645,7 @@ class MainWindow(QMainWindow):
                 ax.legend(loc='upper left', fontsize=7)
         
         # 不再调用 tight_layout，避免阻塞主线程
-        # tight_layout 仅在 setup_multi_channel 初始化时调用一次
+        # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
     
     def _plot_single_channel(self, data: Optional[np.ndarray], channel: int):
         """
@@ -699,7 +699,7 @@ class MainWindow(QMainWindow):
         ax.legend(loc='upper left', fontsize=10)
         
         # 不再调用 tight_layout，避免阻塞主线程
-        # tight_layout 仅在 setup_single_channel 初始化时调用一次
+        # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
     
     def closeEvent(self, event):
         """窗口关闭事件"""
