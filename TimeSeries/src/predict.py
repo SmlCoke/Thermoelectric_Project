@@ -252,8 +252,8 @@ def plot_predictions(input_seq, predictions, ground_truth=None, channel=0, save_
         plt.plot(pred_time, ground_truth[:, channel], 'g-', label='Ground Truth', linewidth=2)
     
     plt.xlabel('Time Step', fontproperties=T_14)
-    plt.ylabel(f'{voltage_columns[channel]} Voltage (V)', fontproperties=T_14)
-    plt.title(f'Time Series Prediction - Channel {channel+1}', fontproperties=T_14)
+    plt.ylabel(f'Voltage (mV)', fontproperties=T_14)
+    plt.title(f'Time Series Prediction - {voltage_columns[channel]}', fontproperties=T_14)
     plt.legend(prop = T_12)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -294,8 +294,8 @@ def plot_all_channels(input_seq, predictions, ground_truth=None, save_path=None)
             ax.plot(pred_time, ground_truth[:, channel], 'g-', label='Ground Truth', linewidth=1.5)
         
         ax.set_xlabel('Time Step', fontproperties=T_14)
-        ax.set_ylabel(f'{voltage_columns[channel]} (V)', fontproperties=T_14)
-        ax.set_title(f'Channel {channel+1}', fontproperties=T_14)
+        ax.set_ylabel(f'Voltage (mV)', fontproperties=T_14)
+        ax.set_title(f'{voltage_columns[channel]}', fontproperties=T_14)
         ax.legend(prop = T_12)
         ax.grid(True, alpha=0.3)
     
