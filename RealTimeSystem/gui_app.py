@@ -408,12 +408,12 @@ class MainWindow(QMainWindow):
         return panel
     
     def _create_plot_panel(self) -> QWidget:
-        """创建图表面板"""
+        """Create plot panel"""
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
-        # 创建标题
-        title_label = QLabel("实时电压数据与预测")
+        # Create title (using English to avoid font rendering issues)
+        title_label = QLabel("Real-time Voltage Data and Prediction")
         title_label.setFont(QFont('Arial', 14, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
@@ -422,14 +422,14 @@ class MainWindow(QMainWindow):
         self.canvas = PlotCanvas(self, width=10, height=8, dpi=100)
         layout.addWidget(self.canvas)
         
-        # 图例说明
+        # Legend explanation (using English to avoid font issues)
         legend_layout = QHBoxLayout()
         legend_layout.addStretch()
         
         legend_items = [
-            ("历史数据", "#2196F3"),
-            ("预测结果", "#FF5722"),
-            ("实际测量", "#4CAF50")
+            ("Historical Data", "#2196F3"),
+            ("Prediction", "#FF5722"),
+            ("Actual Measurement", "#4CAF50")
         ]
         
         for text, color in legend_items:
@@ -616,14 +616,14 @@ class MainWindow(QMainWindow):
             ax.clear()
             
             if data is not None and len(data) > 0:
-                # 绘制历史数据
+                # Plot historical data
                 time_axis = np.arange(len(data))
                 ax.plot(time_axis, data[:, i], 
                        color=self.CHANNEL_COLORS[i], 
                        linewidth=1.5, 
-                       label='历史数据')
+                       label='History')
                 
-                # 绘制预测
+                # Plot prediction
                 if self.last_prediction is not None:
                     pred_data = self.last_prediction.predictions
                     pred_time = np.arange(len(data), len(data) + len(pred_data))
@@ -633,12 +633,12 @@ class MainWindow(QMainWindow):
                            linestyle='--',
                            marker='o',
                            markersize=3,
-                           label='预测')
+                           label='Prediction')
             
-            # 设置标题和标签
+            # Set title and labels in English to avoid Chinese font rendering issues
             ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontsize=10, fontweight='bold')
-            ax.set_xlabel('时间步', fontsize=8)
-            ax.set_ylabel('电压 (V)', fontsize=8)
+            ax.set_xlabel('Time Step', fontsize=8)
+            ax.set_ylabel('Voltage (V)', fontsize=8)
             ax.grid(True, alpha=0.3)
             ax.tick_params(axis='both', labelsize=8)
             
@@ -664,14 +664,14 @@ class MainWindow(QMainWindow):
         ax.clear()
         
         if data is not None and len(data) > 0:
-            # 绘制历史数据
+            # Plot historical data
             time_axis = np.arange(len(data))
             ax.plot(time_axis, data[:, channel],
                    color=self.CHANNEL_COLORS[channel],
                    linewidth=2,
-                   label='历史数据')
+                   label='History')
             
-            # 绘制预测
+            # Plot prediction
             if self.last_prediction is not None:
                 pred_data = self.last_prediction.predictions
                 pred_time = np.arange(len(data), len(data) + len(pred_data))
@@ -681,9 +681,9 @@ class MainWindow(QMainWindow):
                        linestyle='--',
                        marker='o',
                        markersize=5,
-                       label=f'预测 ({self.predict_steps}步)')
+                       label=f'Prediction ({self.predict_steps} steps)')
                 
-                # 连接历史数据和预测
+                # Connect historical data and prediction
                 if len(time_axis) > 0 and len(pred_time) > 0:
                     ax.plot([time_axis[-1], pred_time[0]],
                            [data[-1, channel], pred_data[0, channel]],
@@ -692,10 +692,10 @@ class MainWindow(QMainWindow):
                            linestyle=':',
                            alpha=0.5)
         
-        # 设置标题和标签
-        ax.set_title(f'{self.CHANNEL_NAMES[channel]} 通道电压', fontsize=14, fontweight='bold')
-        ax.set_xlabel('时间步 (10秒/步)', fontsize=12)
-        ax.set_ylabel('电压 (V)', fontsize=12)
+        # Set title and labels in English to avoid Chinese font rendering issues
+        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Time Step (10s/step)', fontsize=12)
+        ax.set_ylabel('Voltage (V)', fontsize=12)
         ax.grid(True, alpha=0.3)
         ax.legend(loc='upper left', fontsize=10)
         
