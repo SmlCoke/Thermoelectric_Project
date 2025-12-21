@@ -500,8 +500,8 @@ class MainWindow(QMainWindow):
         self.last_prediction = result
         self.prediction_history.append(result)
         self._update_status("推理完成")
-        # 使用 QTimer 延迟更新图表，避免阻塞主线程
-        QTimer.singleShot(100, self._update_plot)
+        # 立即更新图表，但使用优化的非阻塞方式
+        self._update_plot()
     
     def _on_status_changed(self, status: str):
         """状态改变信号处理"""
@@ -644,11 +644,8 @@ class MainWindow(QMainWindow):
             if data is not None and len(data) > 0:
                 ax.legend(loc='upper left', fontsize=7)
         
-        # 只在首次或必要时调用 tight_layout
-        try:
-            self.canvas.fig.tight_layout(pad=2.0)
-        except Exception:
-            pass  # 忽略 tight_layout 错误
+        # 不再调用 tight_layout，避免阻塞主线程
+        # tight_layout 仅在 setup_multi_channel 初始化时调用一次
     
     def _plot_single_channel(self, data: Optional[np.ndarray], channel: int):
         """
@@ -701,11 +698,8 @@ class MainWindow(QMainWindow):
         ax.grid(True, alpha=0.3)
         ax.legend(loc='upper left', fontsize=10)
         
-        # 只在必要时调用 tight_layout
-        try:
-            self.canvas.fig.tight_layout(pad=3.0)
-        except Exception:
-            pass  # 忽略 tight_layout 错误
+        # 不再调用 tight_layout，避免阻塞主线程
+        # tight_layout 仅在 setup_single_channel 初始化时调用一次
     
     def closeEvent(self, event):
         """窗口关闭事件"""
