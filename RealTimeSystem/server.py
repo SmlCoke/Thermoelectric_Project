@@ -223,6 +223,8 @@ class DataServer:
         # 推理状态标志，防止重复推理
         self._inference_running = False
         self._inference_lock = threading.Lock()
+        self._last_inference_time = 0  # 上次推理的时间戳
+        self._inference_cooldown = 5.0  # 推理冷却时间（秒），防止频繁触发
         
         logger.info(f"数据服务器初始化完成 (端口: {port})")
     
@@ -267,11 +269,16 @@ class DataServer:
                 # 检查是否可以进行推理（使用锁防止重复推理）
                 inference_triggered = False
                 with self._inference_lock:
+                    current_time = time.time()
+                    time_since_last = current_time - self._last_inference_time
+                    
                     if (self.window.is_ready() and 
                         self.inference_callback is not None and 
-                        not self._inference_running):
+                        not self._inference_running and
+                        time_since_last >= self._inference_cooldown):
                         # 标记推理正在运行
                         self._inference_running = True
+                        self._last_inference_time = current_time
                         # 在后台线程中执行推理
                         threading.Thread(target=self._run_inference, daemon=True).start()
                         inference_triggered = True

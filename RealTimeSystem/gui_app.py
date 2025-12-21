@@ -500,8 +500,9 @@ class MainWindow(QMainWindow):
         self.last_prediction = result
         self.prediction_history.append(result)
         self._update_status("推理完成")
-        # 立即更新图表（已移除 tight_layout 调用，不再阻塞主线程）
-        self._update_plot()
+        # 使用 QTimer 确保图表更新不阻塞信号处理
+        # 即使图表更新很快，延迟调用也能确保事件循环正常运行
+        QTimer.singleShot(0, self._update_plot)
     
     def _on_status_changed(self, status: str):
         """状态改变信号处理"""
