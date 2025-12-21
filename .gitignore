@@ -70,3 +70,8 @@ temp/
 !Prac_train/
 !Prac_predict/
 !Prac_data/
+
+*.zip
+*.tar.gz
+*.7z
+*.rar
