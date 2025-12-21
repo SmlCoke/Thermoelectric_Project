@@ -45,10 +45,10 @@ def process_data(input_csv_file):
         if 'DateTime' in df_clean.columns:
             print("请确保DateTime列已经通过Excel软件处理完毕！")
 
-        # (3) 将Blue列和Green列的数值取绝对值
+        # (3) 将Blue列和Green列的数值取相反数
         for col in ['Blue', 'Green']:
             if col in df_clean.columns:
-                df_clean[col] = df_clean[col].abs()
+                df_clean[col] = -df_clean[col]
 
         # (4) 切换单位（除DateTime列），数值扩大1000倍
         df_clean.loc[:, df_clean.columns != 'DateTime'] *= 1000
