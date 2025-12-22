@@ -210,16 +210,22 @@ class MainWindow(QMainWindow):
         self.last_prediction = None
         self.prediction_history = deque(maxlen=10)
         
+        # CSV 文件读取配置
+        self.csv_data_file = server.csv_file
+        self.csv_prediction_file = server.prediction_file
+        self.last_data_row_count = 0
+        self.last_prediction_row_count = 0
+        
         # 初始化界面
         self._init_ui()
         
-        # 设置推理回调
-        self.server.set_inference_callback(self._run_inference)
+        # 不再使用推理回调，改为定时读取CSV
+        # self.server.set_inference_callback(self._run_inference)
         
-        # 启动定时器更新界面
+        # 启动定时器更新界面（从CSV读取）
         self.update_timer = QTimer()
-        self.update_timer.timeout.connect(self._update_display)
-        self.update_timer.start(1000)  # 每秒更新一次
+        self.update_timer.timeout.connect(self._update_from_csv)
+        self.update_timer.start(2000)  # 每2秒从CSV读取一次（用户要求：数据接收后过一会再可视化）
     
     def _init_ui(self):
         """初始化用户界面"""
@@ -562,8 +568,101 @@ class MainWindow(QMainWindow):
             self._update_status(f"等待数据... ({current_size}/{window.window_size})")
     
     def _update_display(self):
-        """定时器更新显示"""
+        """定时器更新显示（已废弃，改用_update_from_csv）"""
         self._update_status_labels()
+    
+    def _update_from_csv(self):
+        """从CSV文件读取数据并更新界面"""
+        import csv
+        import os
+        
+        try:
+            # 读取接收到的数据
+            if os.path.exists(self.csv_data_file):
+                with open(self.csv_data_file, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    rows = list(reader)
+                    
+                    # 跳过表头，获取新数据
+                    data_rows = rows[1:]  # Skip header
+                    current_row_count = len(data_rows)
+                    
+                    if current_row_count > self.last_data_row_count:
+                        # 有新数据
+                        self.last_data_row_count = current_row_count
+                        
+                        # 更新状态标签
+                        self.receive_label.setText(str(current_row_count))
+                        
+                        if data_rows:
+                            # 获取最新数据
+                            latest_row = data_rows[-1]
+                            timestamp = latest_row[0]
+                            values = [float(v) for v in latest_row[1:]]
+                            
+                            self.timestamp_label.setText(timestamp)
+                            for i, (label, value) in enumerate(zip(self.voltage_labels, values)):
+                                label.setText(f"{value:.4f} V")
+                            
+                            # 更新窗口大小显示
+                            window_size = min(current_row_count, 60)
+                            self.window_label.setText(f"{window_size} / 60")
+                            
+                            if window_size >= 60:
+                                self._update_status("数据就绪")
+                            else:
+                                self._update_status(f"等待数据... ({window_size}/60)")
+            
+            # 读取预测结果
+            if os.path.exists(self.csv_prediction_file):
+                with open(self.csv_prediction_file, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    rows = list(reader)
+                    
+                    # 跳过表头
+                    pred_rows = rows[1:]  # Skip header
+                    current_pred_count = len(pred_rows)
+                    
+                    if current_pred_count > self.last_prediction_row_count:
+                        # 有新的预测
+                        self.last_prediction_row_count = current_pred_count
+                        
+                        # 读取最新一组预测（按timestamp分组，取最新的）
+                        if pred_rows:
+                            # 解析预测数据：每一步一行
+                            latest_timestamp = pred_rows[-1][0]
+                            
+                            # 收集所有同一timestamp的预测
+                            predictions_list = []
+                            for row in reversed(pred_rows):
+                                if row[0] == latest_timestamp:
+                                    # row格式: [timestamp, step, ch1, ch2, ..., ch8]
+                                    pred_values = [float(v) for v in row[2:]]
+                                    predictions_list.insert(0, pred_values)
+                                else:
+                                    break
+                            
+                            if predictions_list:
+                                # 创建预测结果对象
+                                from inference_engine import PredictionResult
+                                predictions_array = np.array(predictions_list)
+                                result = PredictionResult(
+                                    predictions=predictions_array,
+                                    steps=len(predictions_list),
+                                    input_seq_len=60,
+                                    timestamp=latest_timestamp
+                                )
+                                
+                                self.last_prediction = result
+                                self._update_status("推理完成")
+                                
+                                # 更新图表
+                                self._update_plot()
+        
+        except Exception as e:
+            logger.error(f"从CSV读取数据时出错: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _run_inference(self):
         """执行推理（在后台线程中调用）"""
@@ -581,27 +680,37 @@ class MainWindow(QMainWindow):
             # 执行推理
             result = self.engine.predict(data, steps=self.predict_steps, timestamp=timestamp)
             
-            # 保存预测结果
-            self.server.window.save_prediction(result.predictions, timestamp)
+            # 保存预测结果到CSV（替代原来的GUI更新）
+            self.server.save_prediction_to_csv(timestamp, result.predictions, self.predict_steps)
             
-            # 发送信号
-            self.signals.inference_completed.emit(result)
-            
-            logger.info(f"推理完成: {self.predict_steps} 步预测")
+            logger.info(f"推理完成: {self.predict_steps} 步预测，已写入CSV")
             
         except Exception as e:
             logger.error(f"推理出错: {e}")
-            self.signals.status_changed.emit(f"推理出错: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _update_plot(self):
-        """更新图表"""
+        """更新图表（从CSV读取的数据）"""
         try:
-            # 检查窗口是否可见，如果不可见则不更新，节省资源
-            if not self.isVisible():
-                return
-
-            window = self.server.window
-            data = window.get_data()
+            import csv
+            import os
+            
+            # 从CSV读取最近60个数据点
+            data = None
+            if os.path.exists(self.csv_data_file):
+                with open(self.csv_data_file, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    rows = list(reader)
+                    data_rows = rows[1:]  # Skip header
+                    
+                    if len(data_rows) >= 60:
+                        # 取最后60行
+                        recent_rows = data_rows[-60:]
+                        data = np.array([[float(v) for v in row[1:]] for row in recent_rows])
+                    elif len(data_rows) > 0:
+                        # 不足60行，取所有
+                        data = np.array([[float(v) for v in row[1:]] for row in data_rows])
             
             if self.current_channel == -1:
                 # 全通道显示
@@ -741,12 +850,14 @@ def main():
                        help='滑动窗口大小 (默认: 60)')
     parser.add_argument('--model-path', type=str, default=None,
                        help='模型检查点路径')
+    parser.add_argument('--csv-dir', type=str, default='./realtime_data',
+                       help='CSV数据输出目录 (默认: ./realtime_data)')
     
     args = parser.parse_args()
     
     # 创建推理引擎
     logger.info("=" * 60)
-    logger.info("热电芯片电压实时监测与预测系统")
+    logger.info("热电芯片电压实时监测与预测系统 - CSV解耦架构")
     logger.info("=" * 60)
     
     engine = create_inference_engine(args.model_path)
@@ -754,11 +865,9 @@ def main():
     # 创建数据服务器
     server = DataServer(
         port=args.port,
-        window_size=args.window_size
+        window_size=args.window_size,
+        csv_output_dir=args.csv_dir
     )
-    
-    # 在后台线程启动服务器
-    server.run_in_thread()
     
     # 创建 Qt 应用
     app = QApplication(sys.argv)
@@ -768,11 +877,20 @@ def main():
     
     # 创建主窗口
     window = MainWindow(server, engine)
+    
+    # 设置推理回调（在窗口创建后设置）
+    server.set_inference_callback(window._run_inference)
+    
+    # 在后台线程启动服务器
+    server.run_in_thread()
+    
     window.show()
     
     logger.info("=" * 60)
-    logger.info("GUI 已启动")
+    logger.info("GUI 已启动 - CSV解耦模式")
     logger.info(f"HTTP 服务: http://0.0.0.0:{args.port}")
+    logger.info(f"数据文件: {server.csv_file}")
+    logger.info(f"预测文件: {server.prediction_file}")
     logger.info("等待 Raspberry Pi 发送数据...")
     logger.info("=" * 60)
     

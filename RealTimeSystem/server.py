@@ -3,9 +3,9 @@
 
 该模块负责：
 1. 提供 Flask HTTP 服务，接收 Pi 发送的电压数据
-2. 维护最近 60 个时间点的滑动窗口
-3. 当窗口数据足够时触发推理
-4. 提供数据接口供 GUI 使用
+2. 将接收到的数据写入 CSV 文件
+3. 维护最近 60 个时间点的滑动窗口
+4. 当窗口数据足够时触发推理（写入预测结果到CSV）
 
 使用方式：
     python server.py --port 5000 --model-path ../TimeSeries/Prac_train/checkpoints/best_model.pth
@@ -15,14 +15,15 @@ import os
 import sys
 import json
 import time
+import csv
 import logging
 import argparse
 import threading
-import queue  # [新增] 导入队列
 from datetime import datetime
 from collections import deque
 from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass, asdict, field
+from pathlib import Path
 
 # 添加 TimeSeries/src 到路径（如果存在）
 _timeseries_src_path = os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src')
@@ -196,7 +197,8 @@ class DataServer:
         self,
         port: int = 5000,
         window_size: int = 60,
-        inference_callback: Optional[Callable] = None
+        inference_callback: Optional[Callable] = None,
+        csv_output_dir: str = "./realtime_data"
     ):
         """
         初始化数据服务器
@@ -205,15 +207,20 @@ class DataServer:
             port: int, 服务端口
             window_size: int, 滑动窗口大小
             inference_callback: Callable, 推理回调函数
+            csv_output_dir: str, CSV输出目录
         """
         self.port = port
         self.window = SlidingWindow(window_size=window_size)
         self.inference_callback = inference_callback
         
-        # [新增] 推理任务队列和工作线程
-        self.inference_queue = queue.Queue(maxsize=1)  # 队列大小为1，丢弃积压的任务
-        self._start_inference_worker()
-
+        # CSV 输出配置
+        self.csv_output_dir = Path(csv_output_dir)
+        self.csv_output_dir.mkdir(parents=True, exist_ok=True)
+        self.csv_file = self.csv_output_dir / "received_data.csv"
+        self.prediction_file = self.csv_output_dir / "predictions.csv"
+        self._init_csv_files()
+        self._csv_lock = threading.Lock()
+        
         # 创建 Flask 应用
         self.app = Flask(__name__)
         CORS(self.app)
@@ -232,6 +239,51 @@ class DataServer:
         self._inference_cooldown = 5.0  # 推理冷却时间（秒），防止频繁触发
         
         logger.info(f"数据服务器初始化完成 (端口: {port})")
+        logger.info(f"CSV 输出目录: {self.csv_output_dir}")
+    
+    def _init_csv_files(self):
+        """初始化 CSV 文件"""
+        # 初始化接收数据文件
+        if not self.csv_file.exists():
+            with open(self.csv_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                header = ["Timestamp"] + self.CHANNEL_NAMES
+                writer.writerow(header)
+            logger.info(f"创建数据文件: {self.csv_file}")
+        
+        # 初始化预测结果文件
+        if not self.prediction_file.exists():
+            with open(self.prediction_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                header = ["Prediction_Timestamp", "Steps"] + self.CHANNEL_NAMES
+                writer.writerow(header)
+            logger.info(f"创建预测文件: {self.prediction_file}")
+    
+    def _write_data_to_csv(self, data_point: DataPoint):
+        """将数据点写入 CSV 文件"""
+        with self._csv_lock:
+            try:
+                with open(self.csv_file, 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    row = [data_point.timestamp] + data_point.values
+                    writer.writerow(row)
+            except Exception as e:
+                logger.error(f"写入 CSV 失败: {e}")
+    
+    def _write_prediction_to_csv(self, timestamp: str, predictions: Any, steps: int):
+        """将预测结果写入 CSV 文件"""
+        with self._csv_lock:
+            try:
+                with open(self.prediction_file, 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    # 将每一步预测写为一行
+                    import numpy as np
+                    if isinstance(predictions, np.ndarray):
+                        for step_idx, pred_values in enumerate(predictions):
+                            row = [timestamp, step_idx + 1] + pred_values.tolist()
+                            writer.writerow(row)
+            except Exception as e:
+                logger.error(f"写入预测 CSV 失败: {e}")
     
     def _register_routes(self):
         """注册 Flask 路由"""
@@ -263,30 +315,35 @@ class DataServer:
                 if not isinstance(values, list) or len(values) != 8:
                     return jsonify({'error': 'values必须是包含8个元素的数组'}), 400
                 
-                # 创建数据点并添加到窗口
+                # 创建数据点
                 data_point = DataPoint(
                     timestamp=data['timestamp'],
                     values=values
                 )
+                
+                # 立即写入CSV文件（主要改动：解耦数据接收和可视化）
+                self._write_data_to_csv(data_point)
+                
+                # 添加到窗口
                 self.window.add(data_point)
                 self.receive_count += 1
                 
-                # [修改] 触发推理逻辑：只负责将任务放入队列
+                # 检查是否可以进行推理（使用锁防止重复推理）
                 inference_triggered = False
-                current_time = time.time()
-                
-                # 简单的冷却检查，不需要锁，因为只是放入队列
-                if (self.window.is_ready() and 
-                    self.inference_callback is not None and 
-                    self.inference_queue.empty() and  # 队列为空才添加
-                    (current_time - self._last_inference_time >= self._inference_cooldown)):
+                with self._inference_lock:
+                    current_time = time.time()
+                    time_since_last = current_time - self._last_inference_time
                     
-                    self._last_inference_time = current_time
-                    try:
-                        self.inference_queue.put_nowait(True)
+                    if (self.window.is_ready() and 
+                        self.inference_callback is not None and 
+                        not self._inference_running and
+                        time_since_last >= self._inference_cooldown):
+                        # 标记推理正在运行
+                        self._inference_running = True
+                        self._last_inference_time = current_time
+                        # 在后台线程中执行推理
+                        threading.Thread(target=self._run_inference, daemon=True).start()
                         inference_triggered = True
-                    except queue.Full:
-                        pass # 队列满则跳过
                 
                 return jsonify({
                     'status': 'ok',
@@ -358,37 +415,21 @@ class DataServer:
             self.window.clear()
             return jsonify({'status': 'ok', 'message': '窗口已清空'})
     
-    # [新增] 启动推理工作线程
-    def _start_inference_worker(self):
-        def worker():
-            logger.info("推理工作线程已启动")
-            while True:
-                try:
-                    # 阻塞等待任务
-                    task = self.inference_queue.get()
-                    if task is None: break  # 退出信号
-                    
-                    # 执行推理
-                    self._run_inference()
-                    
-                    # 标记任务完成
-                    self.inference_queue.task_done()
-                except Exception as e:
-                    logger.error(f"推理工作线程异常: {e}")
-        
-        t = threading.Thread(target=worker, daemon=True)
-        t.start()
-
     def _run_inference(self):
-        """运行推理 (在工作线程中执行)"""
+        """运行推理"""
         try:
             if self.inference_callback is not None:
-                # [修改] 移除 sleep，队列机制已经保证了非阻塞
-                # time.sleep(0.1) 
                 self.inference_callback()
         except Exception as e:
             logger.error(f"推理出错: {e}")
-        # [修改] 移除 finally 块中的锁操作，因为不再需要手动管理 _inference_running 标志
+        finally:
+            # 无论推理是否成功，都重置标志以允许下一次推理
+            with self._inference_lock:
+                self._inference_running = False
+    
+    def save_prediction_to_csv(self, timestamp: str, predictions: Any, steps: int):
+        """保存预测结果到CSV（供推理回调使用）"""
+        self._write_prediction_to_csv(timestamp, predictions, steps)
     
     def set_inference_callback(self, callback: Callable):
         """设置推理回调函数"""
