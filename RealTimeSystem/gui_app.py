@@ -709,41 +709,64 @@ class MainWindow(QMainWindow):
             import csv
             import os
             
-            # 从CSV读取最近60个数据点
+            # 从CSV读取所有数据点（包含timestamps）
             data = None
+            timestamps = []
+            all_data_rows = []
+            
             if os.path.exists(self.csv_data_file):
                 with open(self.csv_data_file, 'r', encoding='utf-8') as f:
                     reader = csv.reader(f)
                     rows = list(reader)
                     data_rows = rows[1:]  # Skip header
                     
-                    if len(data_rows) >= 60:
-                        # 取最后60行
-                        recent_rows = data_rows[-60:]
-                        data = np.array([[float(v) for v in row[1:]] for row in recent_rows])
-                    elif len(data_rows) > 0:
-                        # 不足60行，取所有
-                        data = np.array([[float(v) for v in row[1:]] for row in data_rows])
+                    if len(data_rows) > 0:
+                        # 保存所有数据行用于创建timestamp映射
+                        all_data_rows = data_rows
+                        timestamps = [row[0] for row in data_rows]
+                        
+                        # 只显示最近60个数据点
+                        if len(data_rows) >= 60:
+                            recent_rows = data_rows[-60:]
+                            data = np.array([[float(v) for v in row[1:]] for row in recent_rows])
+                            # 调整timestamps也只取最近60个
+                            display_timestamps = timestamps[-60:]
+                        else:
+                            data = np.array([[float(v) for v in row[1:]] for row in data_rows])
+                            display_timestamps = timestamps
+            
+            # 创建timestamp到索引的映射（用于所有数据）
+            timestamp_to_index = {ts: idx for idx, ts in enumerate(timestamps)}
+            
+            # 计算显示窗口的起始索引
+            if len(timestamps) >= 60:
+                display_start_index = len(timestamps) - 60
+            else:
+                display_start_index = 0
             
             if self.current_channel == -1:
                 # 全通道显示
-                self._plot_all_channels(data)
+                self._plot_all_channels(data, timestamp_to_index, display_start_index)
             else:
                 # 单通道显示
-                self._plot_single_channel(data, self.current_channel)
+                self._plot_single_channel(data, self.current_channel, timestamp_to_index, display_start_index)
             
             # 使用 draw_idle 替代 draw，避免阻塞主线程
             self.canvas.draw_idle()
             
         except Exception as e:
             logger.error(f"更新图表出错: {e}")
+            import traceback
+            traceback.print_exc()
     
-    def _plot_all_channels(self, data: Optional[np.ndarray]):
+    def _plot_all_channels(self, data: Optional[np.ndarray], timestamp_to_index: dict = None, display_start_index: int = 0):
         """
         绘制所有通道
         
         参数:
             data: np.ndarray or None, 窗口数据
+            timestamp_to_index: dict, timestamp到全局索引的映射
+            display_start_index: int, 显示窗口在全局数据中的起始索引
         """
         # 确保有8个子图
         if len(self.canvas.axes) != 8:
@@ -754,42 +777,49 @@ class MainWindow(QMainWindow):
             
             if data is not None and len(data) > 0:
                 # Plot historical data
-                time_axis = np.arange(len(data))
+                time_axis = np.arange(display_start_index, display_start_index + len(data))
                 ax.plot(time_axis, data[:, i], 
                        color=self.CHANNEL_COLORS[i], 
                        linewidth=1.5, 
                        label='History')
                 
                 # Plot all predictions (not just the last one)
-                if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0:
+                if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0 and timestamp_to_index is not None:
                     for pred_result in self.all_predictions:
-                        # 计算预测的起始时间点
-                        # 假设每个预测都是基于前60个点做出的
-                        # 我们需要找到这个预测对应的数据位置
-                        pred_data = pred_result.predictions
+                        # 根据预测的timestamp找到对应的数据索引
+                        pred_timestamp = pred_result.timestamp
                         
-                        # 简化：从当前数据的末尾开始绘制所有预测
-                        # 更好的方式是根据timestamp对齐，但这需要更复杂的逻辑
-                        pred_time = np.arange(len(data), len(data) + len(pred_data))
-                        ax.plot(pred_time, pred_data[:, i],
-                               color='#FF5722',
-                               linewidth=1.5,
-                               linestyle='--',
-                               marker='o',
-                               markersize=2,
-                               alpha=0.6)  # 使用透明度以区分多个预测
+                        if pred_timestamp in timestamp_to_index:
+                            # 找到预测是基于哪个时间点做出的
+                            pred_base_index = timestamp_to_index[pred_timestamp]
+                            
+                            # 预测从这个时间点之后开始
+                            pred_data = pred_result.predictions
+                            pred_time = np.arange(pred_base_index + 1, pred_base_index + 1 + len(pred_data))
+                            
+                            ax.plot(pred_time, pred_data[:, i],
+                                   color='#FF5722',
+                                   linewidth=1.5,
+                                   linestyle='--',
+                                   marker='o',
+                                   markersize=2,
+                                   alpha=0.6)  # 使用透明度以区分多个预测
                 
                 # 单独标记最新的预测（更明显）
-                if self.last_prediction is not None:
-                    pred_data = self.last_prediction.predictions
-                    pred_time = np.arange(len(data), len(data) + len(pred_data))
-                    ax.plot(pred_time, pred_data[:, i],
-                           color='#FF5722',
-                           linewidth=2,
-                           linestyle='--',
-                           marker='o',
-                           markersize=3,
-                           label='Prediction')
+                if self.last_prediction is not None and timestamp_to_index is not None:
+                    pred_timestamp = self.last_prediction.timestamp
+                    if pred_timestamp in timestamp_to_index:
+                        pred_base_index = timestamp_to_index[pred_timestamp]
+                        pred_data = self.last_prediction.predictions
+                        pred_time = np.arange(pred_base_index + 1, pred_base_index + 1 + len(pred_data))
+                        
+                        ax.plot(pred_time, pred_data[:, i],
+                               color='#FF5722',
+                               linewidth=2,
+                               linestyle='--',
+                               marker='o',
+                               markersize=3,
+                               label='Prediction')
             
             # Set title and labels in English to avoid Chinese font rendering issues
             ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontsize=10, fontweight='bold')
@@ -804,13 +834,15 @@ class MainWindow(QMainWindow):
         # 不再调用 tight_layout，避免阻塞主线程
         # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
     
-    def _plot_single_channel(self, data: Optional[np.ndarray], channel: int):
+    def _plot_single_channel(self, data: Optional[np.ndarray], channel: int, timestamp_to_index: dict = None, display_start_index: int = 0):
         """
         绘制单个通道
         
         参数:
             data: np.ndarray or None, 窗口数据
             channel: int, 通道索引
+            timestamp_to_index: dict, timestamp到全局索引的映射
+            display_start_index: int, 显示窗口在全局数据中的起始索引
         """
         # 确保只有1个子图
         if len(self.canvas.axes) != 1:
@@ -821,45 +853,64 @@ class MainWindow(QMainWindow):
         
         if data is not None and len(data) > 0:
             # Plot historical data
-            time_axis = np.arange(len(data))
+            time_axis = np.arange(display_start_index, display_start_index + len(data))
             ax.plot(time_axis, data[:, channel],
                    color=self.CHANNEL_COLORS[channel],
                    linewidth=2,
                    label='History')
             
             # Plot all predictions (not just the last one)
-            if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0:
+            if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0 and timestamp_to_index is not None:
                 for pred_result in self.all_predictions:
-                    pred_data = pred_result.predictions
-                    pred_time = np.arange(len(data), len(data) + len(pred_data))
-                    ax.plot(pred_time, pred_data[:, channel],
-                           color='#FF5722',
-                           linewidth=2,
-                           linestyle='--',
-                           marker='o',
-                           markersize=4,
-                           alpha=0.5)  # 使用透明度以区分多个预测
+                    pred_timestamp = pred_result.timestamp
+                    
+                    if pred_timestamp in timestamp_to_index:
+                        pred_base_index = timestamp_to_index[pred_timestamp]
+                        pred_data = pred_result.predictions
+                        pred_time = np.arange(pred_base_index + 1, pred_base_index + 1 + len(pred_data))
+                        
+                        ax.plot(pred_time, pred_data[:, channel],
+                               color='#FF5722',
+                               linewidth=2,
+                               linestyle='--',
+                               marker='o',
+                               markersize=4,
+                               alpha=0.5)  # 使用透明度以区分多个预测
             
             # Plot the latest prediction more prominently
-            if self.last_prediction is not None:
-                pred_data = self.last_prediction.predictions
-                pred_time = np.arange(len(data), len(data) + len(pred_data))
-                ax.plot(pred_time, pred_data[:, channel],
-                       color='#FF5722',
-                       linewidth=2.5,
-                       linestyle='--',
-                       marker='o',
-                       markersize=5,
-                       label=f'Prediction ({self.predict_steps} steps)')
-                
-                # Connect historical data and prediction
-                if len(time_axis) > 0 and len(pred_time) > 0:
-                    ax.plot([time_axis[-1], pred_time[0]],
-                           [data[-1, channel], pred_data[0, channel]],
+            if self.last_prediction is not None and timestamp_to_index is not None:
+                pred_timestamp = self.last_prediction.timestamp
+                if pred_timestamp in timestamp_to_index:
+                    pred_base_index = timestamp_to_index[pred_timestamp]
+                    pred_data = self.last_prediction.predictions
+                    pred_time = np.arange(pred_base_index + 1, pred_base_index + 1 + len(pred_data))
+                    
+                    ax.plot(pred_time, pred_data[:, channel],
                            color='#FF5722',
-                           linewidth=1,
-                           linestyle=':',
-                           alpha=0.5)
+                           linewidth=2.5,
+                           linestyle='--',
+                           marker='o',
+                           markersize=5,
+                           label=f'Prediction ({self.predict_steps} steps)')
+                    
+                    # Connect historical data and prediction
+                    if len(time_axis) > 0 and len(pred_time) > 0:
+                        # 找到连接点的正确索引
+                        if pred_base_index >= display_start_index and pred_base_index < display_start_index + len(data):
+                            local_idx = pred_base_index - display_start_index
+                            ax.plot([time_axis[local_idx], pred_time[0]],
+                                   [data[local_idx, channel], pred_data[0, channel]],
+                                   color='#FF5722',
+                                   linewidth=1,
+                                   linestyle=':',
+                                   alpha=0.5)
+        
+        # Set title and labels in English to avoid Chinese font rendering issues
+        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Time Step (10s/step)', fontsize=12)
+        ax.set_ylabel('Voltage (V)', fontsize=12)
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='upper left', fontsize=10)
         
         # Set title and labels in English to avoid Chinese font rendering issues
         ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontsize=14, fontweight='bold')
