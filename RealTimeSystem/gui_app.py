@@ -13,6 +13,17 @@ GUI 可视化应用程序
 
 import os
 import sys
+
+# [新增] 在导入 numpy/torch 之前设置环境变量
+# 这对于防止多线程环境下的死锁至关重要
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+# 允许某些库的重复加载（解决某些环境下的崩溃）
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import time
 import logging
 import argparse
@@ -585,6 +596,10 @@ class MainWindow(QMainWindow):
     def _update_plot(self):
         """更新图表"""
         try:
+            # 检查窗口是否可见，如果不可见则不更新，节省资源
+            if not self.isVisible():
+                return
+
             window = self.server.window
             data = window.get_data()
             
@@ -711,6 +726,13 @@ class MainWindow(QMainWindow):
 
 def main():
     """主函数"""
+    # [新增] 再次确保限制 PyTorch 线程数
+    try:
+        import torch
+        torch.set_num_threads(1)
+    except ImportError:
+        pass
+
     parser = argparse.ArgumentParser(description='热电芯片电压实时监测与预测系统')
     
     parser.add_argument('--port', type=int, default=5000,
