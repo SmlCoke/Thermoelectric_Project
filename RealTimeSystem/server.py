@@ -18,6 +18,7 @@ import time
 import logging
 import argparse
 import threading
+import queue  # [新增] 导入队列
 from datetime import datetime
 from collections import deque
 from typing import List, Optional, Dict, Any, Callable
@@ -209,6 +210,10 @@ class DataServer:
         self.window = SlidingWindow(window_size=window_size)
         self.inference_callback = inference_callback
         
+        # [新增] 推理任务队列和工作线程
+        self.inference_queue = queue.Queue(maxsize=1)  # 队列大小为1，丢弃积压的任务
+        self._start_inference_worker()
+
         # 创建 Flask 应用
         self.app = Flask(__name__)
         CORS(self.app)
@@ -266,22 +271,22 @@ class DataServer:
                 self.window.add(data_point)
                 self.receive_count += 1
                 
-                # 检查是否可以进行推理（使用锁防止重复推理）
+                # [修改] 触发推理逻辑：只负责将任务放入队列
                 inference_triggered = False
-                with self._inference_lock:
-                    current_time = time.time()
-                    time_since_last = current_time - self._last_inference_time
+                current_time = time.time()
+                
+                # 简单的冷却检查，不需要锁，因为只是放入队列
+                if (self.window.is_ready() and 
+                    self.inference_callback is not None and 
+                    self.inference_queue.empty() and  # 队列为空才添加
+                    (current_time - self._last_inference_time >= self._inference_cooldown)):
                     
-                    if (self.window.is_ready() and 
-                        self.inference_callback is not None and 
-                        not self._inference_running and
-                        time_since_last >= self._inference_cooldown):
-                        # 标记推理正在运行
-                        self._inference_running = True
-                        self._last_inference_time = current_time
-                        # 在后台线程中执行推理
-                        threading.Thread(target=self._run_inference, daemon=True).start()
+                    self._last_inference_time = current_time
+                    try:
+                        self.inference_queue.put_nowait(True)
                         inference_triggered = True
+                    except queue.Full:
+                        pass # 队列满则跳过
                 
                 return jsonify({
                     'status': 'ok',
@@ -353,17 +358,37 @@ class DataServer:
             self.window.clear()
             return jsonify({'status': 'ok', 'message': '窗口已清空'})
     
+    # [新增] 启动推理工作线程
+    def _start_inference_worker(self):
+        def worker():
+            logger.info("推理工作线程已启动")
+            while True:
+                try:
+                    # 阻塞等待任务
+                    task = self.inference_queue.get()
+                    if task is None: break  # 退出信号
+                    
+                    # 执行推理
+                    self._run_inference()
+                    
+                    # 标记任务完成
+                    self.inference_queue.task_done()
+                except Exception as e:
+                    logger.error(f"推理工作线程异常: {e}")
+        
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
     def _run_inference(self):
-        """运行推理"""
+        """运行推理 (在工作线程中执行)"""
         try:
             if self.inference_callback is not None:
+                # [修改] 移除 sleep，队列机制已经保证了非阻塞
+                # time.sleep(0.1) 
                 self.inference_callback()
         except Exception as e:
             logger.error(f"推理出错: {e}")
-        finally:
-            # 无论推理是否成功，都重置标志以允许下一次推理
-            with self._inference_lock:
-                self._inference_running = False
+        # [修改] 移除 finally 块中的锁操作，因为不再需要手动管理 _inference_running 标志
     
     def set_inference_callback(self, callback: Callable):
         """设置推理回调函数"""
