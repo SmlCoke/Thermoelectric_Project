@@ -627,33 +627,46 @@ class MainWindow(QMainWindow):
                         # 有新的预测
                         self.last_prediction_row_count = current_pred_count
                         
-                        # 读取最新一组预测（按timestamp分组，取最新的）
+                        # 读取所有预测（按timestamp分组）
                         if pred_rows:
-                            # 解析预测数据：每一步一行
-                            latest_timestamp = pred_rows[-1][0]
+                            # 按timestamp分组所有预测
+                            from collections import defaultdict
+                            grouped_predictions = defaultdict(list)
                             
-                            # 收集所有同一timestamp的预测
-                            predictions_list = []
-                            for row in reversed(pred_rows):
-                                if row[0] == latest_timestamp:
-                                    # row格式: [timestamp, step, ch1, ch2, ..., ch8]
-                                    pred_values = [float(v) for v in row[2:]]
-                                    predictions_list.insert(0, pred_values)
-                                else:
-                                    break
+                            for row in pred_rows:
+                                # row格式: [timestamp, step, ch1, ch2, ..., ch8]
+                                timestamp = row[0]
+                                pred_values = [float(v) for v in row[2:]]
+                                grouped_predictions[timestamp].append(pred_values)
                             
-                            if predictions_list:
-                                # 创建预测结果对象
-                                from inference_engine import PredictionResult
+                            # 将每个timestamp的预测转换为PredictionResult对象
+                            from inference_engine import PredictionResult
+                            new_predictions = []
+                            
+                            for timestamp in sorted(grouped_predictions.keys()):
+                                predictions_list = grouped_predictions[timestamp]
                                 predictions_array = np.array(predictions_list)
                                 result = PredictionResult(
                                     predictions=predictions_array,
                                     steps=len(predictions_list),
                                     input_seq_len=60,
-                                    timestamp=latest_timestamp
+                                    timestamp=timestamp
                                 )
-                                
-                                self.last_prediction = result
+                                new_predictions.append(result)
+                            
+                            # 更新prediction_history（保留所有预测）
+                            # 注意：移除maxlen限制，保留所有历史预测
+                            if not hasattr(self, 'all_predictions'):
+                                self.all_predictions = []
+                            
+                            # 只添加新的预测（避免重复）
+                            existing_timestamps = {p.timestamp for p in self.all_predictions}
+                            for pred in new_predictions:
+                                if pred.timestamp not in existing_timestamps:
+                                    self.all_predictions.append(pred)
+                            
+                            if new_predictions:
+                                self.last_prediction = new_predictions[-1]
                                 self._update_status("推理完成")
                                 
                                 # 更新图表
@@ -747,7 +760,26 @@ class MainWindow(QMainWindow):
                        linewidth=1.5, 
                        label='History')
                 
-                # Plot prediction
+                # Plot all predictions (not just the last one)
+                if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0:
+                    for pred_result in self.all_predictions:
+                        # 计算预测的起始时间点
+                        # 假设每个预测都是基于前60个点做出的
+                        # 我们需要找到这个预测对应的数据位置
+                        pred_data = pred_result.predictions
+                        
+                        # 简化：从当前数据的末尾开始绘制所有预测
+                        # 更好的方式是根据timestamp对齐，但这需要更复杂的逻辑
+                        pred_time = np.arange(len(data), len(data) + len(pred_data))
+                        ax.plot(pred_time, pred_data[:, i],
+                               color='#FF5722',
+                               linewidth=1.5,
+                               linestyle='--',
+                               marker='o',
+                               markersize=2,
+                               alpha=0.6)  # 使用透明度以区分多个预测
+                
+                # 单独标记最新的预测（更明显）
                 if self.last_prediction is not None:
                     pred_data = self.last_prediction.predictions
                     pred_time = np.arange(len(data), len(data) + len(pred_data))
@@ -795,7 +827,20 @@ class MainWindow(QMainWindow):
                    linewidth=2,
                    label='History')
             
-            # Plot prediction
+            # Plot all predictions (not just the last one)
+            if hasattr(self, 'all_predictions') and len(self.all_predictions) > 0:
+                for pred_result in self.all_predictions:
+                    pred_data = pred_result.predictions
+                    pred_time = np.arange(len(data), len(data) + len(pred_data))
+                    ax.plot(pred_time, pred_data[:, channel],
+                           color='#FF5722',
+                           linewidth=2,
+                           linestyle='--',
+                           marker='o',
+                           markersize=4,
+                           alpha=0.5)  # 使用透明度以区分多个预测
+            
+            # Plot the latest prediction more prominently
             if self.last_prediction is not None:
                 pred_data = self.last_prediction.predictions
                 pred_time = np.arange(len(data), len(data) + len(pred_data))
