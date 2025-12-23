@@ -52,6 +52,7 @@ try:
         matplotlib.use('Qt5Agg')
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.figure import Figure
+    from matplotlib.font_manager import FontProperties
     import matplotlib.pyplot as plt
 except ImportError:
     print("请安装 matplotlib: pip install matplotlib")
@@ -62,6 +63,25 @@ import numpy as np
 # 导入自定义模块
 from server import DataServer, SlidingWindow
 from inference_engine import create_inference_engine, InferenceEngine
+
+# [新增] 配置 Times New Roman 字体
+try:
+    # Windows font path
+    TIMES_FONT_PATH = r'C:\Windows\Fonts\times.ttf'
+    T_16 = FontProperties(fname=TIMES_FONT_PATH, size=16)
+    T_14 = FontProperties(fname=TIMES_FONT_PATH, size=14)
+    T_12 = FontProperties(fname=TIMES_FONT_PATH, size=12)
+    T_10 = FontProperties(fname=TIMES_FONT_PATH, size=10)
+    T_9 = FontProperties(fname=TIMES_FONT_PATH, size=9)
+    T_8 = FontProperties(fname=TIMES_FONT_PATH, size=8)
+except:
+    # Fallback to default if Times New Roman not available
+    T_16 = FontProperties(size=16)
+    T_14 = FontProperties(size=14)
+    T_12 = FontProperties(size=12)
+    T_10 = FontProperties(size=10)
+    T_9 = FontProperties(size=9)
+    T_8 = FontProperties(size=8)
 
 # 配置日志
 logging.basicConfig(
@@ -228,9 +248,9 @@ class MainWindow(QMainWindow):
         self.update_timer.start(2000)  # 每2秒从CSV读取一次（用户要求：数据接收后过一会再可视化）
     
     def _init_ui(self):
-        """初始化用户界面"""
-        self.setWindowTitle("热电芯片电压实时监测与预测系统")
-        self.setMinimumSize(1200, 800)
+        """Initialize user interface"""
+        self.setWindowTitle("Thermoelectric Chip Voltage Real-time Monitoring and Prediction System")
+        self.setMinimumSize(1400, 900)  # Increased from 1200x800
         
         # 设置样式
         self.setStyleSheet("""
@@ -238,11 +258,13 @@ class MainWindow(QMainWindow):
                 background-color: #F5F5F5;
             }
             QGroupBox {
+                font-family: 'Times New Roman';
+                font-size: 13px;
                 font-weight: bold;
                 border: 2px solid #CCCCCC;
                 border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
+                margin-top: 12px;
+                padding-top: 12px;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
@@ -250,15 +272,20 @@ class MainWindow(QMainWindow):
                 padding: 0 5px 0 5px;
             }
             QLabel {
+                font-family: 'Times New Roman';
                 font-size: 12px;
             }
             QComboBox {
-                padding: 5px;
+                font-family: 'Times New Roman';
+                font-size: 11px;
+                padding: 6px;
                 border: 1px solid #CCCCCC;
                 border-radius: 3px;
             }
             QPushButton {
-                padding: 8px 16px;
+                font-family: 'Times New Roman';
+                font-size: 12px;
+                padding: 10px 18px;
                 border: none;
                 border-radius: 4px;
                 background-color: #4CAF50;
@@ -295,89 +322,94 @@ class MainWindow(QMainWindow):
         right_panel = self._create_plot_panel()
         splitter.addWidget(right_panel)
         
-        # 设置分割比例
-        splitter.setSizes([300, 900])
+        # Set split ratio (more space for plot area)
+        splitter.setSizes([350, 1050])  # Adjusted for larger window
         
         # 创建状态栏
         self._create_status_bar()
     
     def _create_control_panel(self) -> QWidget:
-        """创建控制面板"""
+        """Create control panel"""
         panel = QWidget()
+        panel.setMinimumWidth(350)  # Increased width
         layout = QVBoxLayout(panel)
-        layout.setSpacing(15)
+        layout.setSpacing(18)  # Increased spacing
         
-        # 系统状态组
-        status_group = QGroupBox("系统状态")
+        # System Status Group
+        status_group = QGroupBox("System Status")
         status_layout = QGridLayout()
+        status_layout.setSpacing(10)
         
-        # 状态标签
-        self.status_label = QLabel("等待数据...")
-        self.status_label.setStyleSheet("color: #FF9800; font-weight: bold;")
-        status_layout.addWidget(QLabel("当前状态:"), 0, 0)
+        # Status label
+        self.status_label = QLabel("Waiting for data...")
+        self.status_label.setStyleSheet("color: #FF9800; font-weight: bold; font-size: 13px;")
+        status_layout.addWidget(QLabel("Current Status:"), 0, 0)
         status_layout.addWidget(self.status_label, 0, 1)
         
-        # 窗口大小
+        # Window size
         self.window_label = QLabel("0 / 60")
-        status_layout.addWidget(QLabel("窗口数据:"), 1, 0)
+        status_layout.addWidget(QLabel("Window Data:"), 1, 0)
         status_layout.addWidget(self.window_label, 1, 1)
         
-        # 接收计数
+        # Receive count
         self.receive_label = QLabel("0")
-        status_layout.addWidget(QLabel("接收次数:"), 2, 0)
+        status_layout.addWidget(QLabel("Receive Count:"), 2, 0)
         status_layout.addWidget(self.receive_label, 2, 1)
         
-        # 最新时间戳
+        # Latest timestamp
         self.timestamp_label = QLabel("--")
-        status_layout.addWidget(QLabel("最新数据:"), 3, 0)
+        status_layout.addWidget(QLabel("Latest Data:"), 3, 0)
         status_layout.addWidget(self.timestamp_label, 3, 1)
         
         status_group.setLayout(status_layout)
         layout.addWidget(status_group)
         
-        # 通道选择组
-        channel_group = QGroupBox("通道选择")
+        # Channel Selection Group
+        channel_group = QGroupBox("Channel Selection")
         channel_layout = QVBoxLayout()
+        channel_layout.setSpacing(8)
         
         self.channel_combo = QComboBox()
-        self.channel_combo.addItem("全部通道", -1)
+        self.channel_combo.addItem("All Channels", -1)
         for i, name in enumerate(self.CHANNEL_NAMES):
             self.channel_combo.addItem(f"{i+1}. {name}", i)
         self.channel_combo.currentIndexChanged.connect(self._on_channel_changed)
         
-        channel_layout.addWidget(QLabel("选择显示的通道:"))
+        channel_layout.addWidget(QLabel("Select Display Channel:"))
         channel_layout.addWidget(self.channel_combo)
         
         channel_group.setLayout(channel_layout)
         layout.addWidget(channel_group)
         
-        # 预测设置组
-        predict_group = QGroupBox("预测设置")
+        # Prediction Settings Group
+        predict_group = QGroupBox("Prediction Settings")
         predict_layout = QVBoxLayout()
+        predict_layout.setSpacing(8)
         
         self.steps_combo = QComboBox()
-        self.steps_combo.addItem("1 步预测", 1)
-        self.steps_combo.addItem("10 步预测", 10)
-        self.steps_combo.setCurrentIndex(1)  # 默认10步
+        self.steps_combo.addItem("1 Step Prediction", 1)
+        self.steps_combo.addItem("10 Steps Prediction", 10)
+        self.steps_combo.setCurrentIndex(1)  # Default 10 steps
         self.steps_combo.currentIndexChanged.connect(self._on_steps_changed)
         
-        predict_layout.addWidget(QLabel("预测步数:"))
+        predict_layout.addWidget(QLabel("Prediction Steps:"))
         predict_layout.addWidget(self.steps_combo)
         
         predict_group.setLayout(predict_layout)
         layout.addWidget(predict_group)
         
-        # 最新电压值组
-        voltage_group = QGroupBox("当前电压值")
+        # Current Voltage Values Group
+        voltage_group = QGroupBox("Current Voltage Values")
         voltage_layout = QGridLayout()
+        voltage_layout.setSpacing(8)
         
         self.voltage_labels = []
         for i, name in enumerate(self.CHANNEL_NAMES):
             row, col = i // 2, i % 2
             label_name = QLabel(f"{name}:")
-            label_name.setStyleSheet(f"color: {self.CHANNEL_COLORS[i]};")
+            label_name.setStyleSheet(f"color: {self.CHANNEL_COLORS[i]}; font-weight: bold;")
             label_value = QLabel("--")
-            label_value.setStyleSheet("font-family: monospace; font-size: 11px;")
+            label_value.setStyleSheet("font-family: 'Courier New'; font-size: 11px;")
             voltage_layout.addWidget(label_name, row, col * 2)
             voltage_layout.addWidget(label_value, row, col * 2 + 1)
             self.voltage_labels.append(label_value)
@@ -385,39 +417,41 @@ class MainWindow(QMainWindow):
         voltage_group.setLayout(voltage_layout)
         layout.addWidget(voltage_group)
         
-        # 操作按钮组
-        button_group = QGroupBox("操作")
+        # Operation Buttons Group
+        button_group = QGroupBox("Operations")
         button_layout = QVBoxLayout()
+        button_layout.setSpacing(8)
         
-        # 清除数据按钮
-        clear_btn = QPushButton("清除数据")
+        # Clear data button
+        clear_btn = QPushButton("Clear Data")
         clear_btn.clicked.connect(self._on_clear_clicked)
         clear_btn.setStyleSheet("background-color: #f44336;")
         button_layout.addWidget(clear_btn)
         
-        # 刷新图表按钮
-        refresh_btn = QPushButton("刷新图表")
+        # Refresh chart button
+        refresh_btn = QPushButton("Refresh Chart")
         refresh_btn.clicked.connect(self._update_plot)
         button_layout.addWidget(refresh_btn)
         
         button_group.setLayout(button_layout)
         layout.addWidget(button_group)
         
-        # 添加弹簧
+        # Add stretch
         layout.addStretch()
         
-        # 模型信息
-        model_group = QGroupBox("模型信息")
+        # Model Information
+        model_group = QGroupBox("Model Information")
         model_layout = QVBoxLayout()
+        model_layout.setSpacing(6)
         
         model_info = self.engine.get_model_info()
         model_type = model_info.get('model_type', 'N/A').upper()
         window_size = model_info.get('window_size', 'N/A')
         device = str(model_info.get('device', 'N/A'))
         
-        model_layout.addWidget(QLabel(f"模型类型: {model_type}"))
-        model_layout.addWidget(QLabel(f"窗口大小: {window_size}"))
-        model_layout.addWidget(QLabel(f"设备: {device}"))
+        model_layout.addWidget(QLabel(f"Model Type: {model_type}"))
+        model_layout.addWidget(QLabel(f"Window Size: {window_size}"))
+        model_layout.addWidget(QLabel(f"Device: {device}"))
         
         model_group.setLayout(model_layout)
         layout.addWidget(model_group)
@@ -428,18 +462,21 @@ class MainWindow(QMainWindow):
         """Create plot panel"""
         panel = QWidget()
         layout = QVBoxLayout(panel)
+        layout.setSpacing(12)
         
-        # Create title (using English to avoid font rendering issues)
+        # Create title with Times New Roman font
+        # Create title with Times New Roman font
         title_label = QLabel("Real-time Voltage Data and Prediction")
-        title_label.setFont(QFont('Arial', 14, QFont.Bold))
+        title_label.setFont(QFont('Times New Roman', 16, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("color: #333333; padding: 8px;")
         layout.addWidget(title_label)
         
-        # 创建图表画布
-        self.canvas = PlotCanvas(self, width=10, height=8, dpi=100)
+        # Create matplotlib canvas
+        self.canvas = PlotCanvas(self, width=12, height=9, dpi=100)
         layout.addWidget(self.canvas)
         
-        # Legend explanation (using English to avoid font issues)
+        # Legend explanation with Times New Roman font
         legend_layout = QHBoxLayout()
         legend_layout.addStretch()
         
@@ -451,9 +488,9 @@ class MainWindow(QMainWindow):
         
         for text, color in legend_items:
             label = QLabel(f"● {text}")
-            label.setStyleSheet(f"color: {color}; font-weight: bold;")
+            label.setStyleSheet(f"color: {color}; font-weight: bold; font-family: 'Times New Roman'; font-size: 13px;")
             legend_layout.addWidget(label)
-            legend_layout.addSpacing(20)
+            legend_layout.addSpacing(25)
         
         legend_layout.addStretch()
         layout.addLayout(legend_layout)
@@ -461,22 +498,23 @@ class MainWindow(QMainWindow):
         return panel
     
     def _create_status_bar(self):
-        """创建状态栏"""
+        """Create status bar"""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         
-        # 服务器状态
-        self.server_status = QLabel("服务器: 运行中")
-        self.server_status.setStyleSheet("color: green;")
+        # Server status
+        self.server_status = QLabel("Server: Running")
+        self.server_status.setStyleSheet("color: green; font-family: 'Times New Roman'; font-size: 11px;")
         self.status_bar.addPermanentWidget(self.server_status)
         
-        # 分隔符
+        # Separator
         separator = QFrame()
         separator.setFrameShape(QFrame.VLine)
         self.status_bar.addPermanentWidget(separator)
         
-        # 端口信息
-        port_label = QLabel(f"端口: {self.server.port}")
+        # Port information
+        port_label = QLabel(f"Port: {self.server.port}")
+        port_label.setStyleSheet("font-family: 'Times New Roman'; font-size: 11px;")
         self.status_bar.addPermanentWidget(port_label)
     
     def _on_channel_changed(self, index: int):
@@ -561,11 +599,11 @@ class MainWindow(QMainWindow):
             for i, (label, value) in enumerate(zip(self.voltage_labels, values)):
                 label.setText(f"{value:.4f} V")
         
-        # 更新状态
+        # Update status
         if window.is_ready():
-            self._update_status("数据就绪")
+            self._update_status("Data Ready")
         else:
-            self._update_status(f"等待数据... ({current_size}/{window.window_size})")
+            self._update_status(f"Waiting for data... ({current_size}/{window.window_size})")
     
     def _update_display(self):
         """定时器更新显示（已废弃，改用_update_from_csv）"""
@@ -609,9 +647,9 @@ class MainWindow(QMainWindow):
                             self.window_label.setText(f"{window_size} / 60")
                             
                             if window_size >= 60:
-                                self._update_status("数据就绪")
+                                self._update_status("Data Ready")
                             else:
-                                self._update_status(f"等待数据... ({window_size}/60)")
+                                self._update_status(f"Waiting for data... ({window_size}/60)")
             
             # 读取预测结果
             if os.path.exists(self.csv_prediction_file):
@@ -667,7 +705,7 @@ class MainWindow(QMainWindow):
                             
                             if new_predictions:
                                 self.last_prediction = new_predictions[-1]
-                                self._update_status("推理完成")
+                                self._update_status("Inference Completed")
                                 
                                 # 更新图表
                                 self._update_plot()
@@ -821,15 +859,19 @@ class MainWindow(QMainWindow):
                                markersize=3,
                                label='Prediction')
             
-            # Set title and labels in English to avoid Chinese font rendering issues
-            ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontsize=10, fontweight='bold')
-            ax.set_xlabel('Time Step', fontsize=8)
-            ax.set_ylabel('Voltage (V)', fontsize=8)
-            ax.grid(True, alpha=0.3)
-            ax.tick_params(axis='both', labelsize=8)
+            # Set title and labels with Times New Roman font
+            ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontproperties=T_12, fontweight='bold')
+            ax.set_xlabel('Time Step', fontproperties=T_10)
+            ax.set_ylabel('Voltage (V)', fontproperties=T_10)
+            ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+            ax.tick_params(axis='both', labelsize=9)
+            
+            # Set tick label font
+            for label in ax.get_xticklabels() + ax.get_yticklabels():
+                label.set_fontproperties(T_9)
             
             if data is not None and len(data) > 0:
-                ax.legend(loc='upper left', fontsize=7)
+                ax.legend(loc='upper left', prop=T_8)
         
         # 不再调用 tight_layout，避免阻塞主线程
         # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
@@ -895,7 +937,7 @@ class MainWindow(QMainWindow):
                     
                     # Connect historical data and prediction
                     if len(time_axis) > 0 and len(pred_time) > 0:
-                        # 找到连接点的正确索引
+                        # Find correct index for connection point
                         if pred_base_index >= display_start_index and pred_base_index < display_start_index + len(data):
                             local_idx = pred_base_index - display_start_index
                             ax.plot([time_axis[local_idx], pred_time[0]],
@@ -905,26 +947,24 @@ class MainWindow(QMainWindow):
                                    linestyle=':',
                                    alpha=0.5)
         
-        # Set title and labels in English to avoid Chinese font rendering issues
-        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Time Step (10s/step)', fontsize=12)
-        ax.set_ylabel('Voltage (V)', fontsize=12)
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc='upper left', fontsize=10)
+        # Set title and labels with Times New Roman font
+        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontproperties=T_16, fontweight='bold')
+        ax.set_xlabel('Time Step (10s/step)', fontproperties=T_12)
+        ax.set_ylabel('Voltage (V)', fontproperties=T_12)
+        ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
         
-        # Set title and labels in English to avoid Chinese font rendering issues
-        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Time Step (10s/step)', fontsize=12)
-        ax.set_ylabel('Voltage (V)', fontsize=12)
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc='upper left', fontsize=10)
+        # Set tick label font
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(T_10)
         
-        # 不再调用 tight_layout，避免阻塞主线程
-        # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
+        ax.legend(loc='upper left', prop=T_10)
+        
+        # Comment: tight_layout is not called here to avoid blocking main thread
+        # tight_layout is only called once during initialization
     
     def closeEvent(self, event):
-        """窗口关闭事件"""
-        logger.info("正在关闭应用程序...")
+        """Window close event"""
+        logger.info("Closing application...")
         self.update_timer.stop()
         event.accept()
 
