@@ -64,24 +64,26 @@ import numpy as np
 from server import DataServer, SlidingWindow
 from inference_engine import create_inference_engine, InferenceEngine
 
-# [新增] 配置 Times New Roman 字体
+# [新增] 配置 Times New Roman 字体 - Increased sizes for better readability
 try:
     # Windows font path
     TIMES_FONT_PATH = r'C:\Windows\Fonts\times.ttf'
-    T_16 = FontProperties(fname=TIMES_FONT_PATH, size=16)
-    T_14 = FontProperties(fname=TIMES_FONT_PATH, size=14)
-    T_12 = FontProperties(fname=TIMES_FONT_PATH, size=12)
-    T_10 = FontProperties(fname=TIMES_FONT_PATH, size=10)
-    T_9 = FontProperties(fname=TIMES_FONT_PATH, size=9)
-    T_8 = FontProperties(fname=TIMES_FONT_PATH, size=8)
+    T_20 = FontProperties(fname=TIMES_FONT_PATH, size=20)  # Main titles
+    T_18 = FontProperties(fname=TIMES_FONT_PATH, size=18)  # Section headers
+    T_16 = FontProperties(fname=TIMES_FONT_PATH, size=16)  # Subtitles
+    T_14 = FontProperties(fname=TIMES_FONT_PATH, size=14)  # Labels
+    T_12 = FontProperties(fname=TIMES_FONT_PATH, size=12)  # Axis labels
+    T_11 = FontProperties(fname=TIMES_FONT_PATH, size=11)  # Tick labels
+    T_10 = FontProperties(fname=TIMES_FONT_PATH, size=10)  # Legend
 except:
     # Fallback to default if Times New Roman not available
+    T_20 = FontProperties(size=20)
+    T_18 = FontProperties(size=18)
     T_16 = FontProperties(size=16)
     T_14 = FontProperties(size=14)
     T_12 = FontProperties(size=12)
+    T_11 = FontProperties(size=11)
     T_10 = FontProperties(size=10)
-    T_9 = FontProperties(size=9)
-    T_8 = FontProperties(size=8)
 
 # 配置日志
 logging.basicConfig(
@@ -250,7 +252,7 @@ class MainWindow(QMainWindow):
     def _init_ui(self):
         """Initialize user interface"""
         self.setWindowTitle("Thermoelectric Chip Voltage Real-time Monitoring and Prediction System")
-        self.setMinimumSize(1400, 900)  # Increased from 1200x800
+        self.setMinimumSize(1600, 1000)  # Increased from 1400x900 for larger fonts and plots
         
         # 设置样式
         self.setStyleSheet("""
@@ -259,12 +261,12 @@ class MainWindow(QMainWindow):
             }
             QGroupBox {
                 font-family: 'Times New Roman';
-                font-size: 13px;
+                font-size: 15px;
                 font-weight: bold;
                 border: 2px solid #CCCCCC;
                 border-radius: 5px;
-                margin-top: 12px;
-                padding-top: 12px;
+                margin-top: 14px;
+                padding-top: 14px;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
@@ -273,19 +275,19 @@ class MainWindow(QMainWindow):
             }
             QLabel {
                 font-family: 'Times New Roman';
-                font-size: 12px;
+                font-size: 14px;
             }
             QComboBox {
                 font-family: 'Times New Roman';
-                font-size: 11px;
-                padding: 6px;
+                font-size: 13px;
+                padding: 7px;
                 border: 1px solid #CCCCCC;
                 border-radius: 3px;
             }
             QPushButton {
                 font-family: 'Times New Roman';
-                font-size: 12px;
-                padding: 10px 18px;
+                font-size: 14px;
+                padding: 12px 20px;
                 border: none;
                 border-radius: 4px;
                 background-color: #4CAF50;
@@ -323,7 +325,7 @@ class MainWindow(QMainWindow):
         splitter.addWidget(right_panel)
         
         # Set split ratio (more space for plot area)
-        splitter.setSizes([350, 1050])  # Adjusted for larger window
+        splitter.setSizes([400, 1200])  # Adjusted for larger window (1600 total)
         
         # 创建状态栏
         self._create_status_bar()
@@ -331,9 +333,9 @@ class MainWindow(QMainWindow):
     def _create_control_panel(self) -> QWidget:
         """Create control panel"""
         panel = QWidget()
-        panel.setMinimumWidth(350)  # Increased width
+        panel.setMinimumWidth(400)  # Increased width for larger fonts
         layout = QVBoxLayout(panel)
-        layout.setSpacing(18)  # Increased spacing
+        layout.setSpacing(20)  # Increased spacing
         
         # System Status Group
         status_group = QGroupBox("System Status")
@@ -342,7 +344,7 @@ class MainWindow(QMainWindow):
         
         # Status label
         self.status_label = QLabel("Waiting for data...")
-        self.status_label.setStyleSheet("color: #FF9800; font-weight: bold; font-size: 13px;")
+        self.status_label.setStyleSheet("color: #FF9800; font-weight: bold; font-size: 15px;")
         status_layout.addWidget(QLabel("Current Status:"), 0, 0)
         status_layout.addWidget(self.status_label, 0, 1)
         
@@ -401,15 +403,15 @@ class MainWindow(QMainWindow):
         # Current Voltage Values Group
         voltage_group = QGroupBox("Current Voltage Values")
         voltage_layout = QGridLayout()
-        voltage_layout.setSpacing(8)
+        voltage_layout.setSpacing(10)  # Increased spacing for better readability
         
         self.voltage_labels = []
         for i, name in enumerate(self.CHANNEL_NAMES):
             row, col = i // 2, i % 2
             label_name = QLabel(f"{name}:")
-            label_name.setStyleSheet(f"color: {self.CHANNEL_COLORS[i]}; font-weight: bold;")
+            label_name.setStyleSheet(f"color: {self.CHANNEL_COLORS[i]}; font-weight: bold; font-size: 14px;")  # Increased font size
             label_value = QLabel("--")
-            label_value.setStyleSheet("font-family: 'Courier New'; font-size: 11px;")
+            label_value.setStyleSheet("font-family: 'Courier New'; font-size: 13px;")  # Increased font size
             voltage_layout.addWidget(label_name, row, col * 2)
             voltage_layout.addWidget(label_value, row, col * 2 + 1)
             self.voltage_labels.append(label_value)
@@ -473,7 +475,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(title_label)
         
         # Create matplotlib canvas
-        self.canvas = PlotCanvas(self, width=12, height=9, dpi=100)
+        self.canvas = PlotCanvas(self, width=14, height=10, dpi=100)  # Increased canvas size
         layout.addWidget(self.canvas)
         
         # Legend explanation with Times New Roman font
@@ -504,7 +506,7 @@ class MainWindow(QMainWindow):
         
         # Server status
         self.server_status = QLabel("Server: Running")
-        self.server_status.setStyleSheet("color: green; font-family: 'Times New Roman'; font-size: 11px;")
+        self.server_status.setStyleSheet("color: green; font-family: 'Times New Roman'; font-size: 13px;")  # Increased font
         self.status_bar.addPermanentWidget(self.server_status)
         
         # Separator
@@ -514,7 +516,7 @@ class MainWindow(QMainWindow):
         
         # Port information
         port_label = QLabel(f"Port: {self.server.port}")
-        port_label.setStyleSheet("font-family: 'Times New Roman'; font-size: 11px;")
+        port_label.setStyleSheet("font-family: 'Times New Roman'; font-size: 13px;")  # Increased font
         self.status_bar.addPermanentWidget(port_label)
     
     def _on_channel_changed(self, index: int):
@@ -860,18 +862,18 @@ class MainWindow(QMainWindow):
                                label='Prediction')
             
             # Set title and labels with Times New Roman font
-            ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontproperties=T_12, fontweight='bold')
-            ax.set_xlabel('Time Step', fontproperties=T_10)
-            ax.set_ylabel('Voltage (V)', fontproperties=T_10)
+            ax.set_title(f'{self.CHANNEL_NAMES[i]}', fontproperties=T_14, fontweight='bold')
+            ax.set_xlabel('Time Step', fontproperties=T_12)
+            ax.set_ylabel('Voltage (V)', fontproperties=T_12)
             ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
-            ax.tick_params(axis='both', labelsize=9)
+            ax.tick_params(axis='both', labelsize=11)
             
             # Set tick label font
             for label in ax.get_xticklabels() + ax.get_yticklabels():
-                label.set_fontproperties(T_9)
+                label.set_fontproperties(T_11)
             
             if data is not None and len(data) > 0:
-                ax.legend(loc='upper left', prop=T_8)
+                ax.legend(loc='upper left', prop=T_10)
         
         # 不再调用 tight_layout，避免阻塞主线程
         # tight_layout 仅在初始化时（setup_multi_channel/setup_single_channel）调用一次
@@ -948,16 +950,16 @@ class MainWindow(QMainWindow):
                                    alpha=0.5)
         
         # Set title and labels with Times New Roman font
-        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontproperties=T_16, fontweight='bold')
-        ax.set_xlabel('Time Step (10s/step)', fontproperties=T_12)
-        ax.set_ylabel('Voltage (V)', fontproperties=T_12)
+        ax.set_title(f'{self.CHANNEL_NAMES[channel]} Channel Voltage', fontproperties=T_18, fontweight='bold')
+        ax.set_xlabel('Time Step (10s/step)', fontproperties=T_14)
+        ax.set_ylabel('Voltage (V)', fontproperties=T_14)
         ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
         
         # Set tick label font
         for label in ax.get_xticklabels() + ax.get_yticklabels():
-            label.set_fontproperties(T_10)
+            label.set_fontproperties(T_12)
         
-        ax.legend(loc='upper left', prop=T_10)
+        ax.legend(loc='upper left', prop=T_12)
         
         # Comment: tight_layout is not called here to avoid blocking main thread
         # tight_layout is only called once during initialization
