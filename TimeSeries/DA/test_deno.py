@@ -37,7 +37,7 @@ def plot_single_channel(ax, x_axis, slice_orig, slice_deno, channel, show_legend
         ax.text(0.5, 0.5, f'Column {channel} not found', ha='center', va='center', fontproperties=T_12)
 
 
-def plot_comparison(original_path, denoised_path, start_ratio=0.0, end_ratio=1.0, target_channel=None, save_path=None):
+def plot_comparison(original_path, denoised_path, start_ratio=0.0, end_ratio=1.0, target_channel=None, save_path=None, split=False):
     # 1. 读取数据
     if not os.path.exists(original_path) or not os.path.exists(denoised_path):
         print("错误：找不到输入文件。")
@@ -66,6 +66,37 @@ def plot_comparison(original_path, denoised_path, start_ratio=0.0, end_ratio=1.0
     
     # 生成X轴坐标
     x_axis = range(start_idx, end_idx)
+
+    if split:
+        # 拆分保存为多张图片
+        if target_channel:
+            channels_to_plot = [target_channel]
+        else:
+            channels_to_plot = [
+                "Yellow",
+                "Ultraviolet",
+                "Infrared",
+                "Red",
+                "Green",
+                "Blue",
+                "Transparent",
+                "Violet"
+            ]
+        
+        for channel in channels_to_plot:
+            fig, ax = plt.subplots(figsize=(12, 6))
+            plot_single_channel(ax, x_axis, slice_orig, slice_deno, channel, show_legend=True)
+            title_text = f'Denoising Effect - {channel} ({start_ratio}-{end_ratio})'
+            plt.suptitle(title_text, fontproperties=T_16)
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95]) 
+
+            if save_path:
+                base, ext = os.path.splitext(save_path)
+                split_save_path = f"{base}_{channel}{ext if ext else '.svg'}"
+                plt.savefig(split_save_path, dpi=150)
+                print(f"图片已保存至: {split_save_path}")
+            plt.close()
+        return
 
     # 3. 绘图逻辑
     if target_channel:
@@ -115,7 +146,7 @@ def plot_comparison(original_path, denoised_path, start_ratio=0.0, end_ratio=1.0
         plt.savefig(save_path, dpi=150)
         print(f"图片已保存至: {save_path}")
     
-    plt.show()
+    # plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="可视化降噪效果对比脚本")
@@ -129,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument('--end', "-e", type=float, default=1.0, help='结束时间比例 (0.0 - 1.0)')
     parser.add_argument('--channel', "-c", type=str, default=None, help='指定绘制的单通道名称 (例如 Blue)，不指定则绘制所有')
     parser.add_argument('--save', "-sv", type=str, default=None, help='保存图片的路径 (可选)')
-
+    parser.add_argument('--split', "-sp", action='store_true', help='是否将图片拆分保存为多张 (可选，默认不拆分)')
     args = parser.parse_args()
 
     plot_comparison(
@@ -138,5 +169,6 @@ if __name__ == "__main__":
         start_ratio=args.start,
         end_ratio=args.end,
         target_channel=args.channel,
-        save_path=args.save
+        save_path=args.save,
+        split=args.split
     )

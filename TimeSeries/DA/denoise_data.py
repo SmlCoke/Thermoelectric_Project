@@ -253,8 +253,8 @@ def process_single_file(
     
     # 构造输出文件名
     input_file = Path(input_path)
-    # output_filename = input_file.stem + suffix + input_file.suffix
-    output_filename = input_file.stem + input_file.suffix
+    output_filename = input_file.stem + suffix + input_file.suffix
+    # output_filename = input_file.stem + input_file.suffix
     output_path = os.path.join(output_dir, output_filename)
     
     # 降噪处理
@@ -328,8 +328,8 @@ def process_directory(
         
         try:
             # 构造输出路径
-            # output_filename = csv_file.stem + suffix + csv_file.suffix
-            output_filename = csv_file.stem + csv_file.suffix
+            output_filename = csv_file.stem + suffix + csv_file.suffix
+            # output_filename = csv_file.stem + csv_file.suffix
             output_path = os.path.join(output_dir, output_filename)
             
             # 降噪处理
