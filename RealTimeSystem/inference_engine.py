@@ -23,6 +23,11 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
+# [修复] 限制 PyTorch 线程数
+# 在多线程环境（Flask + GUI）中，PyTorch 的 OpenMP 线程可能会导致死锁或 CPU 饥饿
+# 设置为 1 可以避免这些问题，且对于这种小规模数据的推理，性能影响微乎其微
+torch.set_num_threads(1)
+
 # 添加 TimeSeries/src 到路径（如果存在）
 _timeseries_src_path = os.path.join(os.path.dirname(__file__), '..', 'TimeSeries', 'src')
 if os.path.exists(_timeseries_src_path):
@@ -74,7 +79,7 @@ class InferenceEngine:
     def __init__(
         self,
         model_path: str,
-        device: str = 'auto',
+        device: str = 'cpu',  # [修改] 默认改为 'cpu'，避免多线程 CUDA 冲突
         scaler_path: Optional[str] = None
     ):
         """
@@ -82,14 +87,12 @@ class InferenceEngine:
         
         参数:
             model_path: str, 模型检查点路径
-            device: str, 计算设备 ('auto', 'cuda', 'cpu')
+            device: str, 计算设备 ('cpu' 推荐用于多线程环境)
             scaler_path: str, 标准化器路径 (可选，默认从模型目录查找)
         """
-        # 设置设备
-        if device == 'auto':
-            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        else:
-            self.device = torch.device(device)
+        # [修改] 强制使用 CPU，除非显式指定其他
+        # 在 Flask + PyQt5 多线程环境中，CUDA 容易导致死锁
+        self.device = torch.device(device)
         
         logger.info(f"推理引擎初始化")
         logger.info(f"  设备: {self.device}")
@@ -185,15 +188,35 @@ class InferenceEngine:
         返回:
             scaler: StandardScaler or None
         """
+        # 1. 尝试直接加载指定路径
         if os.path.exists(scaler_path):
-            with open(scaler_path, 'rb') as f:
-                scaler = pickle.load(f)
-            logger.info(f"标准化器已加载: {scaler_path}")
-            return scaler
-        else:
-            logger.warning(f"未找到标准化器: {scaler_path}")
-            logger.warning("预测结果将是标准化后的值")
-            return None
+            try:
+                with open(scaler_path, 'rb') as f:
+                    scaler = pickle.load(f)
+                logger.info(f"标准化器已加载: {scaler_path}")
+                return scaler
+            except Exception as e:
+                logger.error(f"加载标准化器失败: {e}")
+        
+        # 2. [新增] 尝试在模型路径的父目录查找 (常见情况)
+        # 如果 model_path 是 .../checkpoints/best_model.pth
+        # 我们希望查找 .../scaler.pkl
+        model_dir = os.path.dirname(self.model_path)
+        parent_dir = os.path.dirname(model_dir)
+        parent_scaler_path = os.path.join(parent_dir, 'scaler.pkl')
+        
+        if os.path.exists(parent_scaler_path):
+            try:
+                with open(parent_scaler_path, 'rb') as f:
+                    scaler = pickle.load(f)
+                logger.info(f"在父目录找到并加载标准化器: {parent_scaler_path}")
+                return scaler
+            except Exception as e:
+                logger.error(f"加载父目录标准化器失败: {e}")
+
+        logger.warning(f"未找到标准化器 (尝试路径: {scaler_path}, {parent_scaler_path})")
+        logger.warning("!!! 警告: 预测结果将是原始模型输出（未反标准化），数值可能接近 0 !!!")
+        return None
     
     def predict(
         self,
