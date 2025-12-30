@@ -106,8 +106,7 @@ smooth_window = 5
 
 异常钳位：平均修复了9.1%个数据，最高12.4%，最低2.8%
 
-
-#### 3.2 denoise1
+#### 3.2 denoise2
 **denoise配置**
 outlier_threshold = 1.5
 outlier_window = 5
