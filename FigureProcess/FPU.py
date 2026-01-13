@@ -1297,7 +1297,7 @@ class SkyGUI:
 # 入口：只改这里
 # =========================
 if __name__ == "__main__":
-    ROOT_DIR = r"E:\Learning_Materials\2025-2026-1\芯片发电技术基础与应用"
+    ROOT_DIR = r"D:\\Courses\\芯片发电\\data_clean\\Figures"
     YEAR = 2025
     CSV_PATH = os.path.join(ROOT_DIR, "sky_features_all.csv")  # 或 None
 
