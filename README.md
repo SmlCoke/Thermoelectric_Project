@@ -17,7 +17,7 @@
 ## 推荐阅读路径
 
 1. **整体方案与成果**：查看根目录的两份 PDF 结题报告，快速了解项目背景、实验流程与结果。
-2. **数据采集**：阅读 `DataCollectCode/docs/readme.md` 及同目录下的接线、自动化、低功耗等文档，使用 `DataCollectCode/Full_collector.py`、`DataCollectCode/single_collector.py` 或 `DataCollectCode/mock_collector.py` 进行真实或模拟采集，并可通过 `DataCollectCode/pi_sender.py` 将数据转发到主机。
+2. **数据采集**：阅读 [DataCollectCode/docs/readme.md](DataCollectCode/docs/readme.md) 及同目录下的接线、自动化、低功耗等文档，使用 `DataCollectCode/Full_collector.py`、`DataCollectCode/single_collector.py` 或 `DataCollectCode/mock_collector.py` 进行真实或模拟采集，并可通过 `DataCollectCode/pi_sender.py` 将数据转发到主机。
 3. **实时系统**：参见 `RealTimeSystem/README.md`，按说明在主机端启动 `server.py` / `gui_app.py`，在树莓派端运行采集与转发脚本，实现“采集→推理→可视化”的闭环。
 4. **模型训练与推理**：`TimeSeries/README.md` 提供基于 LSTM/GRU 的训练与预测流程，更多细节见 `TimeSeries/docs/`。
 5. **图像处理**：若需查看天空图像分析流程，可参考 `FigureProcess/` 下的脚本。
@@ -30,5 +30,5 @@
 
 ## 说明
 
-- 当前仓库目录与早期版本相比已有较大调整，旧的 `DataCollection` 路径和说明已废弃，新的采集脚本与文档集中在 `DataCollectCode/`。
+- 早期文档中如出现 `DataCollection` 名称，请对应到当前的 `DataCollectCode/` 目录。
 - 贡献或二次开发时，主要关注各目录下的 `.md` 文档和 `.py` 源码；依赖与配置（如 `requirements.txt`、服务配置示例等）亦需按模块文档使用，其余文件多为数据、日志或历史资料。
