@@ -17,14 +17,14 @@
 ## 推荐阅读路径
 
 1. **整体方案与成果**：查看根目录的两份 PDF 结题报告，快速了解项目背景、实验流程与结果。
-2. **数据采集**：阅读 `DataCollectCode/docs/readme.md` 及同目录下的接线、自动化、低功耗等文档，使用 `Full_collector.py`/`single_collector.py` 或 `mock_collector.py` 进行真实或模拟采集，并可通过 `pi_sender.py` 将数据转发到主机。
+2. **数据采集**：阅读 `DataCollectCode/docs/readme.md` 及同目录下的接线、自动化、低功耗等文档，使用 `DataCollectCode/Full_collector.py`、`DataCollectCode/single_collector.py` 或 `DataCollectCode/mock_collector.py` 进行真实或模拟采集，并可通过 `DataCollectCode/pi_sender.py` 将数据转发到主机。
 3. **实时系统**：参见 `RealTimeSystem/README.md`，按说明在主机端启动 `server.py` / `gui_app.py`，在树莓派端运行采集与转发脚本，实现“采集→推理→可视化”的闭环。
 4. **模型训练与推理**：`TimeSeries/README.md` 提供基于 LSTM/GRU 的训练与预测流程，更多细节见 `TimeSeries/docs/`。
 5. **图像处理**：若需查看天空图像分析流程，可参考 `FigureProcess/` 下的脚本。
 
 ## 快速指引
 
-- **采集与转发**：`DataCollectCode/Full_collector.py`（真实硬件）或 `mock_collector.py`（模拟），可搭配 `pi_sender.py` 将数据通过 HTTP POST 发往主机。
+- **采集与转发**：`DataCollectCode/Full_collector.py`（真实硬件）或 `DataCollectCode/mock_collector.py`（模拟），可搭配 `DataCollectCode/pi_sender.py` 将数据通过 HTTP POST 发往主机。
 - **实时展示**：在主机端运行 `RealTimeSystem/gui_app.py`（可指定模型路径），并保持树莓派端采集/转发脚本运行。
 - **模型训练/推理**：进入 `TimeSeries/src/` 运行 `train.py` / `predict.py`（依赖见 `TimeSeries/requirements.txt`）。
 
