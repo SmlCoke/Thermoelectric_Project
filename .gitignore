@@ -66,11 +66,18 @@ events.out.tfevents.*
 *.tmp
 tmp/
 temp/
-# train and predict directories
-!Prac_train/
-!Prac_predict/
-!Prac_data/
 
+# train and predict directories
+Prac_train/
+Prac_predict/
+Prac_data/
+
+# Presentation and report
+Presentation/
+Report/
+Safety/
+
+# Compressed files
 *.zip
 *.tar.gz
 *.7z
