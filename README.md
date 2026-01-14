@@ -30,5 +30,5 @@
 
 ## 说明
 
-- 早期文档中如出现 `DataCollection` 名称，请对应到当前的 `DataCollectCode/` 目录。
+- 早期文档（包括 `DataCollectCode/docs/` 内个别文件）如出现 `DataCollection` 名称，请对应到当前的 `DataCollectCode/` 目录。
 - 贡献或二次开发时，主要关注各目录下的 `.md` 文档和 `.py` 源码；依赖与配置（如 `requirements.txt`、服务配置示例等）亦需按模块文档使用，其余文件多为数据、日志或历史资料。
