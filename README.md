@@ -22,7 +22,7 @@ Thermoelectric_Project/
 ├── README.md                          # 本文件，项目总体说明
 ├── Initial/                           # 项目方案书
 │   └── 完整方案书.md                  # 项目设计文档
-├── Code_1/                            # 机器学习代码
+├── Code_1/                            # 机器学习代码（仅做T模拟使用）
 │   ├── full_version/                  # 完整版深度学习模型
 │   ├── lightweight_version/           # 轻量级模型
 │   └── lightweight_copy/              # 轻量级模型副本
