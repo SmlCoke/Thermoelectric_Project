@@ -67,11 +67,15 @@ events.out.tfevents.*
 tmp/
 temp/
 
+# Raw data directory
+DataCollectCode/RawData/
+
 # train and predict directories
 Prac_train/
 Prac_predict/
 Prac_data/
 TimeSeries/DA/final_tb/
+
 # Presentation and report
 Presentation/
 Report/
