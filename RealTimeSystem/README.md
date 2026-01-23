@@ -80,24 +80,27 @@
 ```
 RealTimeSystem/
 ├── README.md                      # 本文档
-├── init.md                        # 任务需求说明
-│
-├── pi_sender.py                   # 边缘端数据发送模块
-├── pi_sender.md                   # 发送模块说明文档
-│
-├── server.py                      # 主机端 HTTP 接收服务
-├── server.md                      # 服务端说明文档
-│
-├── inference_engine.py            # 推理引擎模块
-├── inference_engine.md            # 推理引擎说明文档
-│
-├── gui_app.py                     # GUI 可视化应用程序
-├── gui_app.md                     # GUI 应用说明文档
-│
-└── DataCollectContrl/             # 数据采集控制脚本
-    ├── Full_collector.py          # 真实数据采集脚本 (需要ADS1115硬件)
-    ├── mock_collector.py          # 模拟数据采集脚本 (用于测试)
-    └── tec-collector.txt          # systemd服务配置文件
+├── docs/                          # 项目文档目录
+│   ├── FIX_NOTES.md               # 修复及变更记录
+│   ├── gui_app.md                 # GUI 应用说明文档
+│   ├── inference_engine.md        # 推理引擎说明文档
+│   ├── init.md                    # 任务需求说明
+│   ├── pi_sender.md               # 发送模块说明文档
+│   ├── server.md                  # 服务端说明文档
+│   └── TESTING_GUIDE.md           # 测试指南
+├── Host/                          # 主机端程序代码
+│   ├── gui_app.py                 # GUI 可视化应用程序
+│   ├── server.py                  # 数据接收服务器模块
+│   └── inference_engine.py        # 推理引擎模块
+├── Raspberry/                     # 边缘端(树莓派)程序代码
+│   ├── Full_collector.py          # 真实数据采集脚本 (需要ADS1115硬件)
+│   ├── mock_collector.md          # 模拟采集脚本说明
+│   ├── mock_collector.py          # 模拟数据采集脚本 (用于测试)
+│   ├── pi_sender.py               # 边缘端数据发送模块
+│   └── tec-collector.txt          # systemd服务配置文件
+└── realtime_data/                 # 运行时数据存储
+    ├── predictions.csv            # 历史预测结果记录
+    └── received_data.csv          # 接收到的原始数据记录
 ```
 
 ## 快速启动

@@ -1,0 +1,3 @@
+adafruit-circuitpython-ads1x15>=2.0.0
+Adafruit-Blinka>=6.0.0
+requests>=2.25.0

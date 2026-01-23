@@ -1,16 +1,26 @@
 # DataCollection - 数据采集系统
 
 本目录包含TEC1-04906热电芯片数据采集系统的完整方案，包括硬件连线方案和Python控制代码。
-
+本仓库中的 py 代码需要放置在 Raspberry Pi 上运行，并且需要在Raspberry Pi OS 环境下配置好 I2C 接口，Python环境以及相关依赖库。如需长时间自动化工作，还需配置系统服务。
 ## 目录结构
 
 ```
-DataCollection/
-├── readme.md                      # 本文件，使用说明
-├── 单ADS1115连线方案.md             # 单个ADS1115的连线方案（2个TEC芯片）
-├── 完整4ADS1115连线方案.md          # 完整方案的连线方案（4个ADS1115 + 8个TEC芯片）
-├── single_ads1115_collector.py   # 单个ADS1115的数据采集脚本
-└── full_4ads1115_collector.py    # 完整4个ADS1115的数据采集脚本
+DataCollectCode/
+├── README.md                      # 本文件，使用说明
+├── Full_collector.py              # 完整4个ADS1115的数据采集脚本
+├── mock_collector.py              # 模拟数据采集脚本 (用于测试)
+├── pi_sender.py                   # 数据发送模块
+├── single_collector.py            # 单个ADS1115的数据采集脚本
+├── tec-collector.txt              # systemd服务配置模板
+└── docs/                          # 文档目录
+    ├── automation.md              # 自动化相关文档
+    ├── DataPersistence.md         # 数据持久化文档
+    ├── LowPower.md                # 低功耗相关文档
+    ├── requirements.txt           # 依赖列表
+    ├── 单ADS1115连线方案.md          # 硬件连线图示1
+    ├── 完整4ADS1115连线方案.md       # 硬件连线图示2
+    ├── 快速开始指南.md             # 快速上手指南
+    └── 树莓派远程连接和基本操作指南.pdf # 参考文档
 ```
 
 ## 项目概述
@@ -34,7 +44,7 @@ DataCollection/
 
 - **硬件**: 1个ADS1115 + 2个TEC芯片
 - **连线方案**: 参见 `单ADS1115连线方案.md`
-- **控制代码**: `single_ads1115_collector.py`
+- **控制代码**: `single_collector.py`
 
 ### 方案二：完整4个ADS1115方案（生产版）
 
@@ -42,7 +52,7 @@ DataCollection/
 
 - **硬件**: 4个ADS1115 + 8个TEC芯片
 - **连线方案**: 参见 `完整4ADS1115连线方案.md`
-- **控制代码**: `full_4ads1115_collector.py`
+- **控制代码**: `Full_collector.py`
 
 ## Raspberry Pi 5 环境配置
 
@@ -106,8 +116,8 @@ sudo i2cdetect -y 1
 
 2. **运行采集脚本**:
 ```bash
-cd /home/runner/work/Thermoelectric_Project/Thermoelectric_Project/DataCollection
-python3 single_ads1115_collector.py
+cd DataCollectCode
+python3 single_collector.py
 ```
 
 3. **停止采集**: 按 `Ctrl+C`
@@ -120,8 +130,8 @@ python3 single_ads1115_collector.py
 
 2. **运行采集脚本**:
 ```bash
-cd /home/runner/work/Thermoelectric_Project/Thermoelectric_Project/DataCollection
-python3 full_4ads1115_collector.py
+cd DataCollectCode
+python3 Full_collector.py
 ```
 
 3. **停止采集**: 按 `Ctrl+C`
@@ -172,8 +182,8 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/Thermoelectric_Project/DataCollection
-ExecStart=/usr/bin/python3 full_4ads1115_collector.py
+WorkingDirectory=/home/pi/Thermoelectric_Project/DataCollectCode
+ExecStart=/usr/bin/python3 Full_collector.py
 Restart=on-failure
 RestartSec=10
 
@@ -216,7 +226,7 @@ screen -S tec_collector
 
 在screen会话中运行脚本：
 ```bash
-python3 full_4ads1115_collector.py
+python3 Full_collector.py
 ```
 
 断开screen会话（保持程序运行）：按 `Ctrl+A`，然后按 `D`
@@ -229,7 +239,7 @@ screen -r tec_collector
 ### 方法3: 使用nohup后台运行
 
 ```bash
-nohup python3 full_4ads1115_collector.py > collector.log 2>&1 &
+nohup python3 Full_collector.py > collector.log 2>&1 &
 ```
 
 查看日志：

@@ -1,0 +1,13 @@
+# Host (PC) Dependencies
+flask>=2.0.0
+flask-cors>=3.0.0
+numpy>=1.20.0
+torch>=1.9.0
+PyQt5>=5.15.0
+matplotlib>=3.4.0
+scikit-learn>=0.24.0
+
+# Edge (Raspberry Pi) Dependencies
+requests>=2.25.0
+adafruit-circuitpython-ads1x15>=2.0.0
+Adafruit-Blinka>=6.0.0
