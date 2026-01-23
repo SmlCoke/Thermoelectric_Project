@@ -1,4 +1,4 @@
-# Thermoelectric_Project
+# TEC-Radiation-Detection
 
 该仓库用于存储《芯片发电技术基础与应用》的课程材料，包括项目方案书、数据采集系统和神经网络代码。
 
